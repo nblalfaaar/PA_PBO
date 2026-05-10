@@ -4,31 +4,45 @@ import com.toga.util.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import java.sql.*;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
+import java.util.HashMap;
 
 public class PanenController {
 
     @FXML private ComboBox<String> cmbTanaman;
     @FXML private ComboBox<String> cmbPengguna;
-    @FXML private DatePicker dpTanggalPanen;
-    @FXML private TextField tfHasilPanen;
-    @FXML private TextArea taKeterangan;
+    @FXML private DatePicker       dpTanggalPanen;
+    @FXML private TextField        tfHasilPanen;
+    @FXML private TextArea         taKeterangan;
 
-    @FXML private TableView<PanenRow> tblPanen;
-    @FXML private TableColumn<PanenRow, String> colTanaman;
-    @FXML private TableColumn<PanenRow, String> colPengguna;
-    @FXML private TableColumn<PanenRow, String> colTanggal;
-    @FXML private TableColumn<PanenRow, String> colHasil;
-    @FXML private TableColumn<PanenRow, String> colKeterangan;
+    @FXML private TableView<PanenRow>              tblPanen;
+    @FXML private TableColumn<PanenRow, String>    colTanaman;
+    @FXML private TableColumn<PanenRow, String>    colPengguna;
+    @FXML private TableColumn<PanenRow, String>    colTanggal;
+    @FXML private TableColumn<PanenRow, String>    colHasil;
+    @FXML private TableColumn<PanenRow, String>    colKeterangan;
 
-    private ObservableList<PanenRow> data = FXCollections.observableArrayList();
+    private final ObservableList<PanenRow> data = FXCollections.observableArrayList();
     private int selectedId = -1;
 
-    private java.util.HashMap<String, Integer> tanamanMap = new java.util.HashMap<>();
-    private java.util.HashMap<String, Integer> penggunaMap = new java.util.HashMap<>();
+    private final HashMap<String, Integer> tanamanMap  = new HashMap<>();
+    private final HashMap<String, Integer> penggunaMap = new HashMap<>();
+
+    private static final String REGEX_HASIL = "[a-zA-Z0-9, ]+";
 
     @FXML
     public void initialize() {
@@ -39,6 +53,12 @@ public class PanenController {
         colTanggal.setCellValueFactory(new PropertyValueFactory<>("tanggalPanen"));
         colHasil.setCellValueFactory(new PropertyValueFactory<>("hasilPanen"));
         colKeterangan.setCellValueFactory(new PropertyValueFactory<>("keterangan"));
+
+        tfHasilPanen.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.isEmpty() && !newVal.matches("[a-zA-Z0-9, ]*")) {
+                tfHasilPanen.setText(oldVal);
+            }
+        });
 
         tblPanen.setOnMouseClicked(e -> {
             PanenRow row = tblPanen.getSelectionModel().getSelectedItem();
@@ -58,19 +78,19 @@ public class PanenController {
     private void loadCombo() {
         tanamanMap.clear();
         penggunaMap.clear();
-        ObservableList<String> tanamanList = FXCollections.observableArrayList();
+        ObservableList<String> tanamanList  = FXCollections.observableArrayList();
         ObservableList<String> penggunaList = FXCollections.observableArrayList();
 
         try (Connection conn = DBConnection.getConnection()) {
-            ResultSet rs1 = conn.createStatement().executeQuery(
-                    "SELECT id, nama FROM tanaman ORDER BY nama");
+            ResultSet rs1 = conn.createStatement()
+                    .executeQuery("SELECT id, nama FROM tanaman ORDER BY nama");
             while (rs1.next()) {
                 tanamanMap.put(rs1.getString("nama"), rs1.getInt("id"));
                 tanamanList.add(rs1.getString("nama"));
             }
 
-            ResultSet rs2 = conn.createStatement().executeQuery(
-                    "SELECT id, nama FROM pengguna ORDER BY nama");
+            ResultSet rs2 = conn.createStatement()
+                    .executeQuery("SELECT id, nama FROM pengguna ORDER BY nama");
             while (rs2.next()) {
                 penggunaMap.put(rs2.getString("nama"), rs2.getInt("id"));
                 penggunaList.add(rs2.getString("nama"));
@@ -81,24 +101,28 @@ public class PanenController {
 
         cmbTanaman.setItems(tanamanList);
         cmbPengguna.setItems(penggunaList);
-        if (!tanamanList.isEmpty()) cmbTanaman.setValue(tanamanList.get(0));
+        if (!tanamanList.isEmpty())  cmbTanaman.setValue(tanamanList.get(0));
         if (!penggunaList.isEmpty()) cmbPengguna.setValue(penggunaList.get(0));
     }
 
     @FXML
     public void handleCatat() {
-        String namaTanaman = cmbTanaman.getValue();
-        String namaPengguna = cmbPengguna.getValue();
-        LocalDate tanggal = dpTanggalPanen.getValue();
-        String hasil = tfHasilPanen.getText().trim();
-        String keterangan = taKeterangan.getText().trim();
+        String    namaTanaman  = cmbTanaman.getValue();
+        String    namaPengguna = cmbPengguna.getValue();
+        LocalDate tanggal      = dpTanggalPanen.getValue();
+        String    hasil        = tfHasilPanen.getText().trim();
+        String    keterangan   = taKeterangan.getText().trim();
 
         if (namaTanaman == null || namaPengguna == null || tanggal == null
                 || hasil.isEmpty() || keterangan.isEmpty()) {
             showAlert("Semua field harus diisi!"); return;
         }
 
-        int tanamanId = tanamanMap.getOrDefault(namaTanaman, -1);
+        if (!hasil.matches(REGEX_HASIL)) {
+            showAlert("Hasil panen hanya boleh berisi huruf, angka, koma, dan spasi!"); return;
+        }
+
+        int tanamanId  = tanamanMap.getOrDefault(namaTanaman, -1);
         int penggunaId = penggunaMap.getOrDefault(namaPengguna, -1);
         if (tanamanId == -1 || penggunaId == -1) {
             showAlert("Data tidak valid!"); return;
@@ -106,7 +130,9 @@ public class PanenController {
 
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO catatan_panen (tanaman_id, pengguna_id, keterangan, tanggal_panen, hasil_panen) VALUES (?,?,?,?,?)");
+                    "INSERT INTO catatan_panen "
+                            + "(tanaman_id, pengguna_id, keterangan, tanggal_panen, hasil_panen) "
+                            + "VALUES (?,?,?,?,?)");
             ps.setInt(1, tanamanId);
             ps.setInt(2, penggunaId);
             ps.setString(3, keterangan);
@@ -114,7 +140,6 @@ public class PanenController {
             ps.setString(5, hasil);
             ps.executeUpdate();
 
-            // update status tanaman jadi SUDAH_DIPANEN
             PreparedStatement ps2 = conn.prepareStatement(
                     "UPDATE tanaman SET status='SUDAH_DIPANEN' WHERE id=?");
             ps2.setInt(1, tanamanId);
@@ -131,6 +156,7 @@ public class PanenController {
     @FXML
     public void handleHapus() {
         if (selectedId == -1) { showAlert("Pilih catatan terlebih dahulu!"); return; }
+
         Alert konfirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "Yakin ingin menghapus catatan panen ini?", ButtonType.YES, ButtonType.NO);
         konfirm.showAndWait().ifPresent(btn -> {
@@ -154,12 +180,12 @@ public class PanenController {
         data.clear();
         try (Connection conn = DBConnection.getConnection()) {
             ResultSet rs = conn.createStatement().executeQuery(
-                    "SELECT cp.id, t.nama AS nama_tanaman, p.nama AS nama_pengguna, " +
-                            "cp.tanggal_panen, cp.hasil_panen, cp.keterangan " +
-                            "FROM catatan_panen cp " +
-                            "JOIN tanaman t ON cp.tanaman_id = t.id " +
-                            "JOIN pengguna p ON cp.pengguna_id = p.id " +
-                            "ORDER BY cp.tanggal_panen DESC");
+                    "SELECT cp.id, t.nama AS nama_tanaman, p.nama AS nama_pengguna, "
+                            + "       cp.tanggal_panen, cp.hasil_panen, cp.keterangan "
+                            + "FROM catatan_panen cp "
+                            + "JOIN tanaman  t ON cp.tanaman_id  = t.id "
+                            + "JOIN pengguna p ON cp.pengguna_id = p.id "
+                            + "ORDER BY cp.tanggal_panen DESC");
             while (rs.next()) {
                 data.add(new PanenRow(
                         rs.getInt("id"),
@@ -191,23 +217,28 @@ public class PanenController {
     }
 
     public static class PanenRow {
-        private int id;
-        private String namaTanaman, namaPengguna, tanggalPanen, hasilPanen, keterangan;
+        private final int    id;
+        private final String namaTanaman;
+        private final String namaPengguna;
+        private final String tanggalPanen;
+        private final String hasilPanen;
+        private final String keterangan;
 
-        public PanenRow(int id, String namaTanaman, String namaPengguna, String tanggalPanen, String hasilPanen, String keterangan) {
-            this.id = id;
-            this.namaTanaman = namaTanaman;
+        public PanenRow(int id, String namaTanaman, String namaPengguna,
+                        String tanggalPanen, String hasilPanen, String keterangan) {
+            this.id           = id;
+            this.namaTanaman  = namaTanaman;
             this.namaPengguna = namaPengguna;
             this.tanggalPanen = tanggalPanen;
-            this.hasilPanen = hasilPanen;
-            this.keterangan = keterangan;
+            this.hasilPanen   = hasilPanen;
+            this.keterangan   = keterangan;
         }
 
-        public int getId() { return id; }
-        public String getNamaTanaman() { return namaTanaman; }
-        public String getNamaPengguna() { return namaPengguna; }
-        public String getTanggalPanen() { return tanggalPanen; }
-        public String getHasilPanen() { return hasilPanen; }
-        public String getKeterangan() { return keterangan; }
+        public int    getId()            { return id; }
+        public String getNamaTanaman()   { return namaTanaman; }
+        public String getNamaPengguna()  { return namaPengguna; }
+        public String getTanggalPanen()  { return tanggalPanen; }
+        public String getHasilPanen()    { return hasilPanen; }
+        public String getKeterangan()    { return keterangan; }
     }
 }

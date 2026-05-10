@@ -39,9 +39,9 @@ public class TanamanRempah extends Tanaman implements ITanamanObat, IPerawatan {
 
     @Override
     public String getDeskripsiObat() {
-        return "Bagian rimpang " + nama + " dengan aroma " + aroma +
-                " digunakan sebagai bahan obat tradisional.";
+        return "Bagian rimpang " + nama + " dengan aroma " + aroma + " digunakan " + getManfaat();
     }
+
 
     @Override
     public String getCaraPenggunaan() {

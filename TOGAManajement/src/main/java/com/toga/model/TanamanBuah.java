@@ -39,8 +39,7 @@ public class TanamanBuah extends Tanaman implements ITanamanObat, IPerawatan {
 
     @Override
     public String getDeskripsiObat() {
-        return "Buah " + nama + " yang dipanen saat musim " + musimBerbuah +
-                " digunakan sebagai bahan obat tradisional.";
+        return "Buah " + nama + " yang dipanen saat musim " + musimBerbuah + " digunakan " + getManfaat();
     }
 
     @Override

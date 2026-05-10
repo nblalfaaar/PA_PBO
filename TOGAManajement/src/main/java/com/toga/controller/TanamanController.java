@@ -1,44 +1,71 @@
 package com.toga.controller;
 
-import com.toga.model.*;
+import com.toga.model.ITanamanObat;
+import com.toga.model.StatusTanaman;
+import com.toga.model.Tanaman;
+import com.toga.model.TanamanBuah;
+import com.toga.model.TanamanDaun;
+import com.toga.model.TanamanRempah;
 import com.toga.util.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import java.sql.*;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
 
 public class TanamanController {
 
     @FXML private ComboBox<String> cmbJenis;
-    @FXML private TextField tfNama;
-    @FXML private TextField tfNamaLatin;
-    @FXML private TextField tfProperti;
-    @FXML private TextArea taManfaat;
-    @FXML private DatePicker dpTanggal;
+    @FXML private TextField        tfNama;
+    @FXML private TextField        tfNamaLatin;
+    @FXML private TextField        tfProperti;
+    @FXML private TextArea         taManfaat;
+    @FXML private DatePicker       dpTanggal;
     @FXML private ComboBox<String> cmbStatus;
-    @FXML private Label lblProperti;
+    @FXML private Label            lblProperti;
 
-    @FXML private TableView<TanamanRow> tblTanaman;
-    @FXML private TableColumn<TanamanRow, String> colNama;
-    @FXML private TableColumn<TanamanRow, String> colJenis;
-    @FXML private TableColumn<TanamanRow, String> colNamaLatin;
-    @FXML private TableColumn<TanamanRow, String> colStatus;
+    @FXML private TableView<TanamanRow>              tblTanaman;
+    @FXML private TableColumn<TanamanRow, String>    colNama;
+    @FXML private TableColumn<TanamanRow, String>    colJenis;
+    @FXML private TableColumn<TanamanRow, String>    colNamaLatin;
+    @FXML private TableColumn<TanamanRow, String>    colStatus;
 
-    private ObservableList<TanamanRow> data = FXCollections.observableArrayList();
+    private final ObservableList<TanamanRow> data = FXCollections.observableArrayList();
     private int selectedId = -1;
+
+    // Regex: hanya huruf (a-z, A-Z) dan spasi
+    private static final String REGEX_HURUF_SPASI = "[a-zA-Z ]+";
 
     @FXML
     public void initialize() {
-        cmbJenis.setItems(FXCollections.observableArrayList("Tanaman Rempah", "Tanaman Daun", "Tanaman Buah"));
-        cmbStatus.setItems(FXCollections.observableArrayList("BIBIT", "TUMBUH", "SIAP_PANEN", "SUDAH_DIPANEN"));
+        cmbJenis.setItems(FXCollections.observableArrayList(
+                "Tanaman Rempah", "Tanaman Daun", "Tanaman Buah"));
+        cmbStatus.setItems(FXCollections.observableArrayList(
+                "BIBIT", "TUMBUH", "SIAP_PANEN", "SUDAH_DIPANEN"));
         cmbJenis.setValue("Tanaman Rempah");
         cmbStatus.setValue("BIBIT");
         dpTanggal.setValue(LocalDate.now());
 
         cmbJenis.setOnAction(e -> updateLabelProperti());
+
+        pasangFilterHurufSpasi(tfNama);
+        pasangFilterHurufSpasi(tfNamaLatin);
+        pasangFilterHurufSpasi(tfProperti);
 
         colNama.setCellValueFactory(new PropertyValueFactory<>("nama"));
         colJenis.setCellValueFactory(new PropertyValueFactory<>("jenis"));
@@ -62,33 +89,55 @@ public class TanamanController {
         loadData();
     }
 
+    private void pasangFilterHurufSpasi(TextField tf) {
+        tf.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.isEmpty() && !newVal.matches("[a-zA-Z ]*")) {
+                tf.setText(oldVal);
+            }
+        });
+    }
+
     private void updateLabelProperti() {
         String jenis = cmbJenis.getValue();
-        if ("Tanaman Rempah".equals(jenis)) lblProperti.setText("Aroma");
+        if ("Tanaman Rempah".equals(jenis))    lblProperti.setText("Aroma");
         else if ("Tanaman Daun".equals(jenis)) lblProperti.setText("Bentuk Daun");
-        else lblProperti.setText("Musim Berbuah");
+        else                                   lblProperti.setText("Musim Berbuah");
     }
 
     @FXML
     public void handleTambah() {
-        String nama = tfNama.getText().trim();
-        String namaLatin = tfNamaLatin.getText().trim();
-        String manfaat = taManfaat.getText().trim();
-        String properti = tfProperti.getText().trim();
-        String jenis = cmbJenis.getValue();
-        String status = cmbStatus.getValue();
-        LocalDate tanggal = dpTanggal.getValue();
+        String    nama     = tfNama.getText().trim();
+        String    latin    = tfNamaLatin.getText().trim();
+        String    manfaat  = taManfaat.getText().trim();
+        String    properti = tfProperti.getText().trim();
+        String    jenis    = cmbJenis.getValue();
+        String    status   = cmbStatus.getValue();
+        LocalDate tanggal  = dpTanggal.getValue();
 
-        if (nama.isEmpty() || namaLatin.isEmpty() || manfaat.isEmpty() || properti.isEmpty() || tanggal == null) {
-            showAlert("Semua field harus diisi!");
-            return;
+        if (nama.isEmpty() || latin.isEmpty() || manfaat.isEmpty()
+                || properti.isEmpty() || tanggal == null) {
+            showAlert("Semua field harus diisi!"); return;
+        }
+        if (!nama.matches(REGEX_HURUF_SPASI)) {
+            showAlert("Nama tanaman hanya boleh berisi huruf dan spasi!"); return;
+        }
+        if (!latin.matches(REGEX_HURUF_SPASI)) {
+            showAlert("Nama Latin hanya boleh berisi huruf dan spasi!"); return;
+        }
+        if (!properti.matches(REGEX_HURUF_SPASI)) {
+            showAlert("Field " + lblProperti.getText() + " hanya boleh berisi huruf dan spasi!"); return;
+        }
+        if (isDuplikatTanaman(-1, nama, latin, manfaat, jenis, properti, status, tanggal)) {
+            showAlert("Data tanaman sudah ada! Tidak dapat menambahkan duplikat."); return;
         }
 
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO tanaman (nama, nama_latin, manfaat, jenis, properti_tambahan, status, tanggal_tanam) VALUES (?,?,?,?,?,?,?)");
+                    "INSERT INTO tanaman "
+                            + "(nama, nama_latin, manfaat, jenis, properti_tambahan, status, tanggal_tanam) "
+                            + "VALUES (?,?,?,?,?,?,?)");
             ps.setString(1, nama);
-            ps.setString(2, namaLatin);
+            ps.setString(2, latin);
             ps.setString(3, manfaat);
             ps.setString(4, jenis);
             ps.setString(5, properti);
@@ -106,23 +155,40 @@ public class TanamanController {
     @FXML
     public void handleUbah() {
         if (selectedId == -1) { showAlert("Pilih tanaman terlebih dahulu!"); return; }
-        String nama = tfNama.getText().trim();
-        String namaLatin = tfNamaLatin.getText().trim();
-        String manfaat = taManfaat.getText().trim();
-        String properti = tfProperti.getText().trim();
-        String jenis = cmbJenis.getValue();
-        String status = cmbStatus.getValue();
-        LocalDate tanggal = dpTanggal.getValue();
 
-        if (nama.isEmpty() || namaLatin.isEmpty() || manfaat.isEmpty() || properti.isEmpty()) {
+        String    nama     = tfNama.getText().trim();
+        String    latin    = tfNamaLatin.getText().trim();
+        String    manfaat  = taManfaat.getText().trim();
+        String    properti = tfProperti.getText().trim();
+        String    jenis    = cmbJenis.getValue();
+        String    status   = cmbStatus.getValue();
+        LocalDate tanggal  = dpTanggal.getValue();
+
+        if (nama.isEmpty() || latin.isEmpty() || manfaat.isEmpty()
+                || properti.isEmpty() || tanggal == null) {
             showAlert("Semua field harus diisi!"); return;
+        }
+        if (!nama.matches(REGEX_HURUF_SPASI)) {
+            showAlert("Nama tanaman hanya boleh berisi huruf dan spasi!"); return;
+        }
+        if (!latin.matches(REGEX_HURUF_SPASI)) {
+            showAlert("Nama Latin hanya boleh berisi huruf dan spasi!"); return;
+        }
+        if (!properti.matches(REGEX_HURUF_SPASI)) {
+            showAlert("Field " + lblProperti.getText() + " hanya boleh berisi huruf dan spasi!"); return;
+        }
+        if (isDuplikatTanaman(selectedId, nama, latin, manfaat, jenis, properti, status, tanggal)) {
+            showAlert("Data tanaman sudah ada! Tidak dapat menyimpan duplikat."); return;
         }
 
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE tanaman SET nama=?, nama_latin=?, manfaat=?, jenis=?, properti_tambahan=?, status=?, tanggal_tanam=? WHERE id=?");
+                    "UPDATE tanaman "
+                            + "SET nama=?, nama_latin=?, manfaat=?, jenis=?, "
+                            + "    properti_tambahan=?, status=?, tanggal_tanam=? "
+                            + "WHERE id=?");
             ps.setString(1, nama);
-            ps.setString(2, namaLatin);
+            ps.setString(2, latin);
             ps.setString(3, manfaat);
             ps.setString(4, jenis);
             ps.setString(5, properti);
@@ -141,11 +207,14 @@ public class TanamanController {
     @FXML
     public void handleHapus() {
         if (selectedId == -1) { showAlert("Pilih tanaman terlebih dahulu!"); return; }
-        Alert konfirm = new Alert(Alert.AlertType.CONFIRMATION, "Yakin ingin menghapus tanaman ini?", ButtonType.YES, ButtonType.NO);
+
+        Alert konfirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Yakin ingin menghapus tanaman ini?", ButtonType.YES, ButtonType.NO);
         konfirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.YES) {
                 try (Connection conn = DBConnection.getConnection()) {
-                    PreparedStatement ps = conn.prepareStatement("DELETE FROM tanaman WHERE id=?");
+                    PreparedStatement ps = conn.prepareStatement(
+                            "DELETE FROM tanaman WHERE id=?");
                     ps.setInt(1, selectedId);
                     ps.executeUpdate();
                     loadData();
@@ -165,12 +234,14 @@ public class TanamanController {
         if (row == null) return;
 
         Tanaman t = buildTanamanFromRow(row);
-        if (t instanceof ITanamanObat obat) {
+        if (t instanceof ITanamanObat) {
+            ITanamanObat obat = (ITanamanObat) t;
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Info Penggunaan Obat");
             alert.setHeaderText(row.getNama() + " (" + row.getJenis() + ")");
-            alert.setContentText("Deskripsi  : " + obat.getDeskripsiObat() +
-                    "\n\nCara Pakai : " + obat.getCaraPenggunaan());
+            alert.setContentText(
+                    "Deskripsi  : " + obat.getDeskripsiObat()
+                            + "\n\nCara Pakai : " + obat.getCaraPenggunaan());
             alert.showAndWait();
         }
     }
@@ -182,41 +253,85 @@ public class TanamanController {
         if (row == null) return;
 
         Tanaman t = buildTanamanFromRow(row);
-
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("Konsumsi", "Konsumsi", "Obat", "Bibit");
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(
+                "Konsumsi", "Konsumsi", "Obat", "Bibit");
         dialog.setTitle("Estimasi Masa Panen");
         dialog.setHeaderText("Pilih tujuan panen untuk " + row.getNama());
         dialog.setContentText("Tujuan:");
         dialog.showAndWait().ifPresent(tujuan -> {
-            int hari = t.estimasiHariPanen(tujuan.toLowerCase());
+            int hari  = t.estimasiHariPanen(tujuan.toLowerCase());
             int bulan = hari / 30;
-            int sisa = hari % 30;
-            showInfo("Estimasi panen " + row.getNama() + " untuk tujuan " + tujuan +
-                    ":\n" + hari + " hari (" + bulan + " bulan " + sisa + " hari)");
+            int sisa  = hari % 30;
+            showInfo("Estimasi panen " + row.getNama() + " untuk tujuan " + tujuan
+                    + ":\n" + hari + " hari (" + bulan + " bulan " + sisa + " hari)");
         });
     }
 
+    private boolean isDuplikatTanaman(int excludeId,
+                                      String nama, String namaLatin, String manfaat,
+                                      String jenis, String properti,
+                                      String status, LocalDate tanggal) {
+        String sql =
+                "SELECT COUNT(*) FROM tanaman "
+                        + "WHERE LOWER(TRIM(nama))              = LOWER(TRIM(?)) "
+                        + "  AND LOWER(TRIM(nama_latin))        = LOWER(TRIM(?)) "
+                        + "  AND LOWER(TRIM(manfaat))           = LOWER(TRIM(?)) "
+                        + "  AND jenis                          = ? "
+                        + "  AND LOWER(TRIM(properti_tambahan)) = LOWER(TRIM(?)) "
+                        + "  AND status                         = ? "
+                        + "  AND tanggal_tanam                  = ? "
+                        + "  AND id                            != ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nama);
+            ps.setString(2, namaLatin);
+            ps.setString(3, manfaat);
+            ps.setString(4, jenis);
+            ps.setString(5, properti);
+            ps.setString(6, status);
+            ps.setDate(7, Date.valueOf(tanggal));
+            ps.setInt(8, excludeId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Tanaman buildTanamanFromRow(TanamanRow row) {
-        LocalDate tgl = row.getTanggalTanam() != null ? row.getTanggalTanam() : LocalDate.now();
-        StatusTanaman st = StatusTanaman.valueOf(row.getStatus());
-        return switch (row.getJenis()) {
-            case "Tanaman Rempah" -> new TanamanRempah(row.getNama(), row.getNamaLatin(), row.getManfaat(), row.getProperti(), st, tgl);
-            case "Tanaman Daun" -> new TanamanDaun(row.getNama(), row.getNamaLatin(), row.getManfaat(), row.getProperti(), st, tgl);
-            default -> new TanamanBuah(row.getNama(), row.getNamaLatin(), row.getManfaat(), row.getProperti(), st, tgl);
-        };
+        LocalDate     tgl = (row.getTanggalTanam() != null) ? row.getTanggalTanam() : LocalDate.now();
+        StatusTanaman st  = StatusTanaman.valueOf(row.getStatus());
+        switch (row.getJenis()) {
+            case "Tanaman Rempah":
+                return new TanamanRempah(row.getNama(), row.getNamaLatin(),
+                        row.getManfaat(), row.getProperti(), st, tgl);
+            case "Tanaman Daun":
+                return new TanamanDaun(row.getNama(), row.getNamaLatin(),
+                        row.getManfaat(), row.getProperti(), st, tgl);
+            default:
+                return new TanamanBuah(row.getNama(), row.getNamaLatin(),
+                        row.getManfaat(), row.getProperti(), st, tgl);
+        }
     }
 
     private void loadData() {
         data.clear();
         try (Connection conn = DBConnection.getConnection()) {
-            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM tanaman ORDER BY nama");
+            ResultSet rs = conn.createStatement()
+                    .executeQuery("SELECT * FROM tanaman ORDER BY nama");
             while (rs.next()) {
-                TanamanRow row = new TanamanRow(
-                        rs.getInt("id"), rs.getString("nama"), rs.getString("jenis"),
-                        rs.getString("nama_latin"), rs.getString("manfaat"),
-                        rs.getString("properti_tambahan"), rs.getString("status"),
-                        rs.getDate("tanggal_tanam") != null ? rs.getDate("tanggal_tanam").toLocalDate() : null);
-                data.add(row);
+                LocalDate tgl = (rs.getDate("tanggal_tanam") != null)
+                        ? rs.getDate("tanggal_tanam").toLocalDate() : null;
+                data.add(new TanamanRow(
+                        rs.getInt("id"),
+                        rs.getString("nama"),
+                        rs.getString("jenis"),
+                        rs.getString("nama_latin"),
+                        rs.getString("manfaat"),
+                        rs.getString("properti_tambahan"),
+                        rs.getString("status"),
+                        tgl));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -225,9 +340,14 @@ public class TanamanController {
     }
 
     private void clearForm() {
-        tfNama.clear(); tfNamaLatin.clear(); taManfaat.clear(); tfProperti.clear();
-        cmbJenis.setValue("Tanaman Rempah"); cmbStatus.setValue("BIBIT");
-        dpTanggal.setValue(LocalDate.now()); selectedId = -1;
+        tfNama.clear();
+        tfNamaLatin.clear();
+        taManfaat.clear();
+        tfProperti.clear();
+        cmbJenis.setValue("Tanaman Rempah");
+        cmbStatus.setValue("BIBIT");
+        dpTanggal.setValue(LocalDate.now());
+        selectedId = -1;
     }
 
     private void showAlert(String msg) {
@@ -239,22 +359,35 @@ public class TanamanController {
     }
 
     public static class TanamanRow {
-        private int id;
-        private String nama, jenis, namaLatin, manfaat, properti, status;
-        private LocalDate tanggalTanam;
+        private final int       id;
+        private final String    nama;
+        private final String    jenis;
+        private final String    namaLatin;
+        private final String    manfaat;
+        private final String    properti;
+        private final String    status;
+        private final LocalDate tanggalTanam;
 
-        public TanamanRow(int id, String nama, String jenis, String namaLatin, String manfaat, String properti, String status, LocalDate tanggalTanam) {
-            this.id = id; this.nama = nama; this.jenis = jenis; this.namaLatin = namaLatin;
-            this.manfaat = manfaat; this.properti = properti; this.status = status; this.tanggalTanam = tanggalTanam;
+        public TanamanRow(int id, String nama, String jenis, String namaLatin,
+                          String manfaat, String properti, String status,
+                          LocalDate tanggalTanam) {
+            this.id           = id;
+            this.nama         = nama;
+            this.jenis        = jenis;
+            this.namaLatin    = namaLatin;
+            this.manfaat      = manfaat;
+            this.properti     = properti;
+            this.status       = status;
+            this.tanggalTanam = tanggalTanam;
         }
 
-        public int getId() { return id; }
-        public String getNama() { return nama; }
-        public String getJenis() { return jenis; }
-        public String getNamaLatin() { return namaLatin; }
-        public String getManfaat() { return manfaat; }
-        public String getProperti() { return properti; }
-        public String getStatus() { return status; }
-        public LocalDate getTanggalTanam() { return tanggalTanam; }
+        public int       getId()            { return id; }
+        public String    getNama()          { return nama; }
+        public String    getJenis()         { return jenis; }
+        public String    getNamaLatin()     { return namaLatin; }
+        public String    getManfaat()       { return manfaat; }
+        public String    getProperti()      { return properti; }
+        public String    getStatus()        { return status; }
+        public LocalDate getTanggalTanam()  { return tanggalTanam; }
     }
 }
