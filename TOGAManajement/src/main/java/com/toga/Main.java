@@ -14,7 +14,7 @@ public class Main extends Application {
         scene.getStylesheets().add(getClass().getResource("/com/toga/css/style.css").toExternalForm());
         stage.setTitle("Sistem Manajemen TOGA");
         stage.setScene(scene);
-        stage.setResizable(false);
+        stage.setResizable(true);
         stage.show();
     }
 

@@ -6,38 +6,36 @@ import java.time.LocalDate;
 public class TanamanRempah extends Tanaman implements ITanamanObat {
     private String aroma;
 
-    public TanamanRempah(String nama, String namaLatin, String manfaat, String aroma, StatusTanaman status, LocalDate tanggalTanam) {
-        super(nama, namaLatin, manfaat, status, tanggalTanam);
+    public TanamanRempah(String nama, String namaLatin, String manfaat,
+                         String aroma, StatusTanaman status,
+                         LocalDate tanggalTanam, int estimasiHari) {
+        super(nama, namaLatin, manfaat, status, tanggalTanam, estimasiHari);
         this.aroma = aroma;
     }
-
-    public String getAroma() { return aroma; }
-    public boolean setAroma(String aroma) {
-        if (StringUtils.isBlank(aroma)) return false;
-        this.aroma = aroma;
-        return true;
-    }
-
-    @Override public String getJenis() { return "Tanaman Rempah"; }
-    @Override public String getPropertiTambahan() { return aroma; }
-    @Override String getInfoSingkat() { return nama + " (" + getNamaLatin() + ") - Rempah"; }
-    @Override public int estimasiHariPanen() { return 240; }
 
     @Override
-    public void tampilInfo() {
-        super.tampilInfo();
-        System.out.println("Jenis      : Tanaman Rempah");
-        System.out.println("Aroma      : " + aroma);
+    public String getJenis() {
+        return "Tanaman Rempah";
+    }
+
+    @Override
+    public String getPropertiTambahan() {
+        return aroma;
+    }
+
+    public void setAroma(String aroma) {
+        if (!StringUtils.isBlank(aroma)) this.aroma = aroma;
     }
 
     @Override
     public String getDeskripsiObat() {
-        return "Bagian rimpang " + nama + " dengan aroma " + aroma + " digunakan " + getManfaat();
+        return "Bagian rimpang " + nama + " dengan aroma " + aroma
+                + " digunakan " + getManfaat();
     }
 
     @Override
     public String getCaraPenggunaan() {
-        return "Rimpang " + nama + " dapat direbus dan diminum air rebusannya, " +
-                "atau ditumbuk dan dioleskan pada bagian yang sakit.";
+        return "Rimpang " + nama + " dapat direbus dan diminum air rebusannya, "
+                + "atau ditumbuk dan dioleskan pada bagian yang sakit.";
     }
 }

@@ -3,57 +3,59 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.*?>
 
-<VBox spacing="14" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.toga.controller.PanenController"
-      styleClass="page-container">
-    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+<ScrollPane fitToWidth="true" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.toga.controller.PanenController"
+            styleClass="scroll-pane">
+    <VBox spacing="14" styleClass="page-container">
+        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-    <Label text="Catatan Panen" styleClass="page-title"/>
+        <Label text="Catatan Panen" styleClass="page-title"/>
 
-    <!-- FORM -->
-    <VBox styleClass="card" spacing="10">
-        <Label text="Form Pencatatan Panen" styleClass="section-title"/>
-        <GridPane hgap="12" vgap="10">
-            <columnConstraints>
-                <ColumnConstraints percentWidth="50"/>
-                <ColumnConstraints percentWidth="50"/>
-            </columnConstraints>
+        <!-- FORM -->
+        <VBox styleClass="card" spacing="10">
+            <Label text="🌾 Form Pencatatan Panen" styleClass="section-title"/>
 
-            <Label text="Pilih Tanaman" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="form-label"/>
-            <ComboBox fx:id="cmbTanaman" maxWidth="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <GridPane hgap="12" vgap="8">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="50"/>
+                    <ColumnConstraints percentWidth="50"/>
+                </columnConstraints>
 
-            <Label text="Pilih Pengguna (Pemanen)" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="form-label"/>
-            <ComboBox fx:id="cmbPengguna" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="Tanaman" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <ComboBox fx:id="cmbTanaman" styleClass="form-field" maxWidth="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
 
-            <Label text="Tanggal Panen" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="form-label"/>
-            <DatePicker fx:id="dpTanggalPanen" maxWidth="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Label text="Pemanen" styleClass="form-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <ComboBox fx:id="cmbPengguna" styleClass="form-field" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-            <Label text="Hasil Panen" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="form-label"/>
-            <TextField fx:id="tfHasilPanen" promptText="cth: 2 kg / 50 lembar"
-                       GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <Label text="Tanggal Panen" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <DatePicker fx:id="dpTanggalPanen" styleClass="form-field" maxWidth="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
 
-            <Label text="Keterangan" GridPane.columnIndex="0" GridPane.rowIndex="4"
-                   GridPane.columnSpan="2" styleClass="form-label"/>
-            <TextArea fx:id="taKeterangan" prefHeight="70" promptText="Catatan tambahan mengenai hasil panen..."
-                      GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2"/>
-        </GridPane>
+                <Label text="Hasil Panen" styleClass="form-label" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <TextField fx:id="tfHasilPanen" promptText="cth: 2 kg / 50 lembar" styleClass="form-field" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                <Label text="Keterangan" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <TextArea fx:id="taKeterangan" prefHeight="50" promptText="Catatan tambahan..." styleClass="form-field" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2"/>
+            </GridPane>
+
+            <HBox spacing="10">
+                <Button text="Catat Panen" onAction="#handleCatat" styleClass="btn-primary"/>
+                <Button text="Hapus" onAction="#handleHapus" styleClass="btn-danger"/>
+            </HBox>
+        </VBox>
+
+        <!-- TABLE -->
+        <VBox styleClass="card" spacing="10">
+            <Label text="📋 Riwayat Panen" styleClass="section-title"/>
+            <TableView fx:id="tblPanen" styleClass="modern-table" prefHeight="300">
+                <columns>
+                    <TableColumn fx:id="colTanaman" text="Tanaman" prefWidth="140"/>
+                    <TableColumn fx:id="colPengguna" text="Pengguna" prefWidth="140"/>
+                    <TableColumn fx:id="colTanggal" text="Tanggal" prefWidth="110"/>
+                    <TableColumn fx:id="colHasil" text="Hasil" prefWidth="100"/>
+                    <TableColumn fx:id="colKeterangan" text="Keterangan" prefWidth="220"/>
+                </columns>
+            </TableView>
+        </VBox>
+
     </VBox>
-
-    <!-- BUTTONS -->
-    <HBox spacing="10">
-        <Button text="Catat Panen" onAction="#handleCatat" styleClass="btn-primary"/>
-        <Button text="Hapus"       onAction="#handleHapus" styleClass="btn-danger"/>
-    </HBox>
-
-    <!-- TABLE -->
-    <TableView fx:id="tblPanen" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn fx:id="colTanaman"    text="Tanaman"   prefWidth="150"/>
-            <TableColumn fx:id="colPengguna"   text="Pengguna"  prefWidth="150"/>
-            <TableColumn fx:id="colTanggal"    text="Tanggal"   prefWidth="120"/>
-            <TableColumn fx:id="colHasil"      text="Hasil"     prefWidth="100"/>
-            <TableColumn fx:id="colKeterangan" text="Keterangan" prefWidth="200"/>
-        </columns>
-    </TableView>
-
-</VBox>
+</ScrollPane>

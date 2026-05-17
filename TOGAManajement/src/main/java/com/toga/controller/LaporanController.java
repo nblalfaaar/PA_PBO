@@ -1,11 +1,12 @@
 package com.toga.controller;
 
-import com.toga.util.DBConnection;
+import com.toga.config.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+
 import java.sql.*;
 import java.time.LocalDate;
 
@@ -13,24 +14,24 @@ public class LaporanController {
 
     @FXML private DatePicker dpDari;
     @FXML private DatePicker dpSampai;
-    @FXML private Label lblTotalPanen;
-    @FXML private Label lblTotalPerawatan;
-    @FXML private Label lblPenggunaAktif;
+    @FXML private Label      lblTotalPanen;
+    @FXML private Label      lblTotalPerawatan;
+    @FXML private Label      lblPenggunaAktif;
 
-    @FXML private TableView<PanenRow> tblPanen;
-    @FXML private TableColumn<PanenRow, String> colTanaman;
-    @FXML private TableColumn<PanenRow, String> colPengguna;
-    @FXML private TableColumn<PanenRow, String> colTanggal;
-    @FXML private TableColumn<PanenRow, String> colHasil;
+    @FXML private TableView<PanenRow>              tblPanen;
+    @FXML private TableColumn<PanenRow, String>    colTanaman;
+    @FXML private TableColumn<PanenRow, String>    colPengguna;
+    @FXML private TableColumn<PanenRow, String>    colTanggal;
+    @FXML private TableColumn<PanenRow, String>    colHasil;
 
-    @FXML private TableView<PerawatanRow> tblPerawatan;
+    @FXML private TableView<PerawatanRow>           tblPerawatan;
     @FXML private TableColumn<PerawatanRow, String> colTanamanP;
     @FXML private TableColumn<PerawatanRow, String> colJenis;
     @FXML private TableColumn<PerawatanRow, String> colTanggalP;
     @FXML private TableColumn<PerawatanRow, String> colStatusP;
 
-    private ObservableList<PanenRow> dataPanen = FXCollections.observableArrayList();
-    private ObservableList<PerawatanRow> dataPerawatan = FXCollections.observableArrayList();
+    private final ObservableList<PanenRow>     dataPanen     = FXCollections.observableArrayList();
+    private final ObservableList<PerawatanRow> dataPerawatan = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -52,16 +53,16 @@ public class LaporanController {
 
     @FXML
     public void handleTampilkan() {
-        LocalDate dari = dpDari.getValue();
-        LocalDate sampai = dpSampai.getValue();
+        LocalDate dari    = dpDari.getValue();
+        LocalDate sampai  = dpSampai.getValue();
 
         if (dari == null || sampai == null) {
             new Alert(Alert.AlertType.WARNING, "Pilih rentang tanggal!", ButtonType.OK).showAndWait();
             return;
         }
-
         if (dari.isAfter(sampai)) {
-            new Alert(Alert.AlertType.WARNING, "Tanggal awal tidak boleh setelah tanggal akhir!", ButtonType.OK).showAndWait();
+            new Alert(Alert.AlertType.WARNING,
+                    "Tanggal awal tidak boleh setelah tanggal akhir!", ButtonType.OK).showAndWait();
             return;
         }
 
@@ -74,12 +75,13 @@ public class LaporanController {
         dataPanen.clear();
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "SELECT t.nama AS nama_tanaman, p.nama AS nama_pengguna, " +
-                            "cp.tanggal_panen, cp.hasil_panen " +
-                            "FROM catatan_panen cp " +
-                            "JOIN tanaman t ON cp.tanaman_id = t.id " +
-                            "JOIN pengguna p ON cp.pengguna_id = p.id " +
-                            "WHERE cp.tanggal_panen BETWEEN ? AND ? ORDER BY cp.tanggal_panen DESC");
+                    "SELECT t.nama AS nama_tanaman, p.nama AS nama_pengguna, "
+                    + "cp.tanggal_panen, cp.hasil_panen "
+                    + "FROM catatan_panen cp "
+                    + "JOIN tanaman  t ON cp.tanaman_id  = t.id "
+                    + "JOIN pengguna p ON cp.pengguna_id = p.id "
+                    + "WHERE cp.tanggal_panen BETWEEN ? AND ? "
+                    + "ORDER BY cp.tanggal_panen DESC");
             ps.setDate(1, Date.valueOf(dari));
             ps.setDate(2, Date.valueOf(sampai));
             ResultSet rs = ps.executeQuery();
@@ -90,9 +92,7 @@ public class LaporanController {
                         rs.getDate("tanggal_panen").toLocalDate().toString(),
                         rs.getString("hasil_panen")));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
         tblPanen.setItems(dataPanen);
     }
 
@@ -100,10 +100,12 @@ public class LaporanController {
         dataPerawatan.clear();
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "SELECT t.nama AS nama_tanaman, j.jenis_perawatan, j.tanggal, j.sudah_dilakukan " +
-                            "FROM jadwal_perawatan j " +
-                            "JOIN tanaman t ON j.tanaman_id = t.id " +
-                            "WHERE j.tanggal BETWEEN ? AND ? ORDER BY j.tanggal DESC");
+                    "SELECT t.nama AS nama_tanaman, j.jenis_perawatan, "
+                    + "j.tanggal, j.sudah_dilakukan "
+                    + "FROM jadwal_perawatan j "
+                    + "JOIN tanaman t ON j.tanaman_id = t.id "
+                    + "WHERE j.tanggal BETWEEN ? AND ? "
+                    + "ORDER BY j.tanggal DESC");
             ps.setDate(1, Date.valueOf(dari));
             ps.setDate(2, Date.valueOf(sampai));
             ResultSet rs = ps.executeQuery();
@@ -114,9 +116,7 @@ public class LaporanController {
                         rs.getDate("tanggal").toLocalDate().toString(),
                         rs.getBoolean("sudah_dilakukan") ? "Selesai" : "Belum"));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
         tblPerawatan.setItems(dataPerawatan);
     }
 
@@ -137,45 +137,46 @@ public class LaporanController {
             if (rs2.next()) lblTotalPerawatan.setText(String.valueOf(rs2.getInt(1)));
 
             PreparedStatement ps3 = conn.prepareStatement(
-                    "SELECT COUNT(DISTINCT pengguna_id) FROM catatan_panen WHERE tanggal_panen BETWEEN ? AND ?");
+                    "SELECT COUNT(DISTINCT pengguna_id) FROM catatan_panen "
+                    + "WHERE tanggal_panen BETWEEN ? AND ?");
             ps3.setDate(1, Date.valueOf(dari));
             ps3.setDate(2, Date.valueOf(sampai));
             ResultSet rs3 = ps3.executeQuery();
             if (rs3.next()) lblPenggunaAktif.setText(String.valueOf(rs3.getInt(1)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static class PanenRow {
-        private String namaTanaman, namaPengguna, tanggal, hasil;
-
+        private final String namaTanaman, namaPengguna, tanggal, hasil;
         public PanenRow(String namaTanaman, String namaPengguna, String tanggal, String hasil) {
-            this.namaTanaman = namaTanaman;
+            this.namaTanaman  = namaTanaman;
             this.namaPengguna = namaPengguna;
-            this.tanggal = tanggal;
-            this.hasil = hasil;
+            this.tanggal      = tanggal;
+            this.hasil        = hasil;
         }
-
-        public String getNamaTanaman() { return namaTanaman; }
+        @SuppressWarnings("unused")
+        public String getNamaTanaman()  { return namaTanaman; }
+        @SuppressWarnings("unused")
         public String getNamaPengguna() { return namaPengguna; }
-        public String getTanggal() { return tanggal; }
-        public String getHasil() { return hasil; }
+        public String getTanggal()      { return tanggal; }
+        @SuppressWarnings("unused")
+        public String getHasil()        { return hasil; }
     }
 
     public static class PerawatanRow {
-        private String namaTanaman, jenisPerawatan, tanggal, status;
-
-        public PerawatanRow(String namaTanaman, String jenisPerawatan, String tanggal, String status) {
-            this.namaTanaman = namaTanaman;
+        private final String namaTanaman, jenisPerawatan, tanggal, status;
+        public PerawatanRow(String namaTanaman, String jenisPerawatan,
+                            String tanggal, String status) {
+            this.namaTanaman    = namaTanaman;
             this.jenisPerawatan = jenisPerawatan;
-            this.tanggal = tanggal;
-            this.status = status;
+            this.tanggal        = tanggal;
+            this.status         = status;
         }
-
-        public String getNamaTanaman() { return namaTanaman; }
+        @SuppressWarnings("unused")
+        public String getNamaTanaman()    { return namaTanaman; }
+        @SuppressWarnings("unused")
         public String getJenisPerawatan() { return jenisPerawatan; }
-        public String getTanggal() { return tanggal; }
-        public String getStatus() { return status; }
+        public String getTanggal()        { return tanggal; }
+        public String getStatus()         { return status; }
     }
 }

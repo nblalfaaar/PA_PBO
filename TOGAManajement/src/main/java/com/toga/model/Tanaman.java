@@ -11,85 +11,76 @@ public abstract class Tanaman {
     private String manfaat;
     private StatusTanaman status;
     private LocalDate tanggalTanam;
+    private int estimasiHari;
 
-    public Tanaman(String nama, String namaLatin, String manfaat, StatusTanaman status, LocalDate tanggalTanam) {
+    public Tanaman(String nama, String namaLatin, String manfaat,
+                   StatusTanaman status, LocalDate tanggalTanam, int estimasiHari) {
         this.nama = nama;
         this.namaLatin = namaLatin;
         this.manfaat = manfaat;
         this.status = status;
         this.tanggalTanam = tanggalTanam;
+        this.estimasiHari = estimasiHari;
     }
 
     public int getId() { return id; }
+    public String getNama() { return nama; }
+    public String getNamaLatin() { return namaLatin; }
+    public String getManfaat() { return manfaat; }
+    public StatusTanaman getStatus() { return status; }
+    public LocalDate getTanggalTanam() { return tanggalTanam; }
+    public int getEstimasiHari() { return estimasiHari; }
+
     public void setId(int id) { this.id = id; }
 
-    public String getNama() { return nama; }
-    public boolean setNama(String nama) {
-        if (StringUtils.isBlank(nama)) return false;
-        this.nama = nama;
-        return true;
+    public void setNama(String nama) {
+        if (!StringUtils.isBlank(nama)) this.nama = nama;
     }
 
-    public String getNamaLatin() { return namaLatin; }
-    public boolean setNamaLatin(String namaLatin) {
-        if (StringUtils.isBlank(namaLatin)) return false;
-        this.namaLatin = namaLatin;
-        return true;
+    public void setNamaLatin(String namaLatin) {
+        if (!StringUtils.isBlank(namaLatin)) this.namaLatin = namaLatin;
     }
 
-    public String getManfaat() { return manfaat; }
-    public boolean setManfaat(String manfaat) {
-        if (StringUtils.isBlank(manfaat)) return false;
-        this.manfaat = manfaat;
-        return true;
+    public void setManfaat(String manfaat) {
+        if (!StringUtils.isBlank(manfaat)) this.manfaat = manfaat;
     }
 
-    public StatusTanaman getStatus() { return status; }
-    public void setStatus(StatusTanaman status) { this.status = status; }
+    public void setStatus(StatusTanaman status) {
+        if (status != null) this.status = status;
+    }
 
-    public LocalDate getTanggalTanam() { return tanggalTanam; }
-    public void setTanggalTanam(LocalDate tanggalTanam) { this.tanggalTanam = tanggalTanam; }
+    public void setTanggalTanam(LocalDate tanggalTanam) {
+        if (tanggalTanam != null) this.tanggalTanam = tanggalTanam;
+    }
 
-    String getInfoSingkat() {
-        return nama + " (" + namaLatin + ")";
+    public void setEstimasiHari(int estimasiHari) {
+        if (estimasiHari > 0) this.estimasiHari = estimasiHari;
     }
 
     public abstract String getJenis();
     public abstract String getPropertiTambahan();
-    public abstract int estimasiHariPanen();
 
-    public int estimasiHariPanen(String tujuan) {
-        int dasar = estimasiHariPanen();
-        if (tujuan.equalsIgnoreCase("bibit")) return dasar + 30;
-        else if (tujuan.equalsIgnoreCase("obat")) return dasar + 45;
-        return dasar;
-    }
-
-    public int sisaHariPanen() {
-        if (tanggalTanam == null) return -1;
-        int totalHari = estimasiHariPanen();
-        LocalDate tanggalPanen = tanggalTanam.plusDays(totalHari);
-        long sisa = ChronoUnit.DAYS.between(LocalDate.now(), tanggalPanen);
-        return (int) sisa;
+    public int getSisaHariPanen() {
+        if (this.tanggalTanam == null) return estimasiHari;
+        long sudahBerlalu = ChronoUnit.DAYS.between(this.tanggalTanam, LocalDate.now());
+        return Math.max(estimasiHari - (int) sudahBerlalu, 0);
     }
 
     public static StatusTanaman hitungStatus(LocalDate tanggalTanam, int estimasiHari) {
         if (tanggalTanam == null) return StatusTanaman.BIBIT;
-        long hariSejaktanam = ChronoUnit.DAYS.between(tanggalTanam, LocalDate.now());
+        long hari = ChronoUnit.DAYS.between(tanggalTanam, LocalDate.now());
 
-        if (hariSejaktanam < 30) {
+        int batasBibit = (int) (estimasiHari * 0.25);
+        int batasTumbuh = estimasiHari - 14;
+
+        if (hari < 0) {
             return StatusTanaman.BIBIT;
-        } else if (hariSejaktanam < estimasiHari - 14) {
+        } else if (hari < batasBibit) {
+            return StatusTanaman.BIBIT;
+        } else if (batasTumbuh > batasBibit && hari < batasTumbuh) {
             return StatusTanaman.TUMBUH;
         } else {
             return StatusTanaman.SIAP_PANEN;
         }
-    }
-
-    public void tampilInfo() {
-        System.out.println("Nama       : " + getNama());
-        System.out.println("Nama Latin : " + getNamaLatin());
-        System.out.println("Manfaat    : " + getManfaat());
-        System.out.println("Status     : " + getStatus());
     }
 }
