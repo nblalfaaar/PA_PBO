@@ -10,4 +10,5 @@ public interface TanamanService {
     void hapusTanaman(int id);
     String getInfoObat(TanamanDTO dto);
     String getEstimasiPanen(TanamanDTO dto);
+    List<TanamanDTO> getAllTanamanForCombo();
 }

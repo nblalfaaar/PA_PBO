@@ -11,8 +11,12 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.LocalDate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TanamanController {
+
+    private static final Logger LOGGER = Logger.getLogger(TanamanController.class.getName());
 
     @FXML private ComboBox<String> cmbJenis;
     @FXML private TextField        tfNama;
@@ -30,6 +34,9 @@ public class TanamanController {
     @FXML private TableColumn<TanamanDTO, String>    colNamaLatin;
     @FXML private TableColumn<TanamanDTO, Integer>   colEstimasi;
     @FXML private TableColumn<TanamanDTO, String>    colStatus;
+
+    @FXML private TableColumn<TanamanDTO, Void> colActionInfo;
+    @FXML private TableColumn<TanamanDTO, Void> colActionEstimasi;
 
     private final TanamanService tanamanService =
             new TanamanServiceImpl(new TanamanRepositoryImpl());
@@ -51,7 +58,6 @@ public class TanamanController {
         pasangFilterHurufSpasi(tfNamaLatin);
         pasangFilterHurufSpasi(tfProperti);
 
-        // Filter angka saja untuk estimasi hari
         tfEstimasiHari.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.matches("\\d*"))
                 tfEstimasiHari.setText(oldVal);
@@ -62,6 +68,40 @@ public class TanamanController {
         colNamaLatin.setCellValueFactory(new PropertyValueFactory<>("namaLatin"));
         colEstimasi.setCellValueFactory(new PropertyValueFactory<>("estimasiHari"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+
+        colActionInfo.setCellFactory(col -> new TableCell<>() {
+            private final Button btn = new Button("🌿 Info");
+            {
+                btn.getStyleClass().add("table-action-btn-info");
+                btn.setOnAction(e -> {
+                    TanamanDTO tanaman = getTableView().getItems().get(getIndex());
+                    handleInfoObat(tanaman);
+                });
+            }
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) setGraphic(null);
+                else setGraphic(btn);
+            }
+        });
+
+        colActionEstimasi.setCellFactory(col -> new TableCell<>() {
+            private final Button btn = new Button("📅 Estimasi");
+            {
+                btn.getStyleClass().add("table-action-btn-estimasi");
+                btn.setOnAction(e -> {
+                    TanamanDTO tanaman = getTableView().getItems().get(getIndex());
+                    handleEstimasiPanen(tanaman);
+                });
+            }
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) setGraphic(null);
+                else setGraphic(btn);
+            }
+        });
 
         tblTanaman.setOnMouseClicked(e -> {
             TanamanDTO row = tblTanaman.getSelectionModel().getSelectedItem();
@@ -92,12 +132,18 @@ public class TanamanController {
             showInfo("Tanaman berhasil ditambahkan! Status: " + dto.getStatus());
         } catch (IllegalArgumentException ex) {
             showAlert(ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Gagal menambah tanaman", ex);
+            showAlert("Terjadi kesalahan sistem. Silakan coba lagi.");
         }
     }
 
     @FXML
     public void handleUbah() {
-        if (selectedId == -1) { showAlert("Pilih tanaman terlebih dahulu!"); return; }
+        if (selectedId == -1) {
+            showAlert("Pilih tanaman terlebih dahulu!");
+            return;
+        }
         try {
             TanamanDTO dto = buildDTOFromForm(selectedId);
             tanamanService.ubahTanaman(dto);
@@ -106,55 +152,72 @@ public class TanamanController {
             showInfo("Tanaman berhasil diubah! Status: " + dto.getStatus());
         } catch (IllegalArgumentException ex) {
             showAlert(ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Gagal mengubah tanaman id: " + selectedId, ex);
+            showAlert("Terjadi kesalahan sistem. Silakan coba lagi.");
         }
     }
 
     @FXML
     public void handleHapus() {
-        if (selectedId == -1) { showAlert("Pilih tanaman terlebih dahulu!"); return; }
+        if (selectedId == -1) {
+            showAlert("Pilih tanaman terlebih dahulu!");
+            return;
+        }
         Alert konfirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "Yakin ingin menghapus tanaman ini?", ButtonType.YES, ButtonType.NO);
         konfirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.YES) {
-                tanamanService.hapusTanaman(selectedId);
-                loadData();
-                clearForm();
-                showInfo("Tanaman berhasil dihapus!");
+                try {
+                    tanamanService.hapusTanaman(selectedId);
+                    loadData();
+                    clearForm();
+                    showInfo("Tanaman berhasil dihapus!");
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Gagal menghapus tanaman id: " + selectedId, ex);
+                    showAlert("Gagal menghapus tanaman!");
+                }
             }
         });
     }
 
-    @FXML
-    public void handleInfoObat() {
-        if (selectedId == -1) { showAlert("Pilih tanaman terlebih dahulu!"); return; }
-        TanamanDTO row = tblTanaman.getSelectionModel().getSelectedItem();
-        if (row == null) return;
+    private void handleInfoObat(TanamanDTO tanaman) {
+        if (tanaman == null) {
+            showAlert("Pilih tanaman terlebih dahulu!");
+            return;
+        }
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Info Penggunaan Obat");
-        alert.setHeaderText(row.getNama() + " (" + row.getJenis() + ")");
-        alert.setContentText(tanamanService.getInfoObat(row));
+        alert.setHeaderText(tanaman.getNama() + " (" + tanaman.getJenis() + ")");
+        alert.setContentText(tanamanService.getInfoObat(tanaman));
         alert.showAndWait();
     }
 
-    @FXML
-    public void handleEstimasiPanen() {
-        if (selectedId == -1) { showAlert("Pilih tanaman terlebih dahulu!"); return; }
-        TanamanDTO row = tblTanaman.getSelectionModel().getSelectedItem();
-        if (row == null) return;
+    private void handleEstimasiPanen(TanamanDTO tanaman) {
+        if (tanaman == null) {
+            showAlert("Pilih tanaman terlebih dahulu!");
+            return;
+        }
         try {
-            String hasil = tanamanService.getEstimasiPanen(row);
+            String hasil = tanamanService.getEstimasiPanen(tanaman);
             showInfo(hasil);
         } catch (IllegalArgumentException ex) {
             showAlert(ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Gagal hitung estimasi panen", ex);
+            showAlert("Terjadi kesalahan sistem. Silakan coba lagi.");
         }
     }
 
-    // ===== PRIVATE HELPERS =====
-
     private void loadData() {
         data.clear();
-        data.addAll(tanamanService.getAllTanaman());
-        tblTanaman.setItems(data);
+        try {
+            data.addAll(tanamanService.getAllTanaman());
+            tblTanaman.setItems(data);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Gagal load data tanaman", ex);
+            showAlert("Gagal memuat data tanaman");
+        }
     }
 
     private TanamanDTO buildDTOFromForm(int id) {
@@ -183,12 +246,15 @@ public class TanamanController {
     }
 
     private void updateStatusPreview() {
-        LocalDate tgl      = dpTanggal.getValue();
-        String    estimasiStr = tfEstimasiHari != null ? tfEstimasiHari.getText() : "";
+        LocalDate tgl = dpTanggal.getValue();
+        String estimasiStr = tfEstimasiHari != null ? tfEstimasiHari.getText() : "";
         if (tgl == null) return;
         int estimasi = 0;
         try { estimasi = Integer.parseInt(estimasiStr); } catch (NumberFormatException ignored) {}
-        if (estimasi <= 0) { lblStatusInfo.setText("Isi estimasi hari untuk preview status"); return; }
+        if (estimasi <= 0) {
+            lblStatusInfo.setText("Isi estimasi hari untuk preview status");
+            return;
+        }
         com.toga.model.StatusTanaman status =
                 com.toga.model.Tanaman.hitungStatus(tgl, estimasi);
         lblStatusInfo.setText("Status otomatis: " + status.name());
@@ -212,10 +278,16 @@ public class TanamanController {
     }
 
     private void showAlert(String msg) {
-        new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+        alert.setTitle("Peringatan");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 
     private void showInfo(String msg) {
-        new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+        alert.setTitle("Informasi");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 }

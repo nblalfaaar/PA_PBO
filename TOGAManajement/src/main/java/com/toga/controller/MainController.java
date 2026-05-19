@@ -2,10 +2,17 @@ package com.toga.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
+
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainController {
+
+    private static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
 
     @FXML
     private StackPane contentArea;
@@ -51,8 +58,15 @@ public class MainController {
             contentArea.getChildren().clear();
             contentArea.getChildren().add(loader.load());
         } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Gagal memuat: " + fxmlPath);
+            LOGGER.log(Level.SEVERE, "Gagal memuat FXML: " + fxmlPath, e);
+            showError("Gagal memuat halaman: " + fxmlPath.substring(fxmlPath.lastIndexOf("/") + 1));
         }
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 }

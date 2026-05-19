@@ -82,17 +82,27 @@
     -fx-border-radius: 16;
 }
 
+/* ===== STAT CARDS (unified) ===== */
 .stat-card {
     -fx-background-color: #FFFFFF;
     -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: #e9d39e;
+    -fx-border-width: 1;
     -fx-padding: 16;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 3);
 }
 
 .stat-card-green {
     -fx-background-color: #b0bc6d;
-    -fx-text-fill: white;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: #98a453;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 3);
 }
+
 .stat-card-green .stat-label,
 .stat-card-green .stat-sub {
     -fx-text-fill: #153715;
@@ -103,7 +113,14 @@
 
 .stat-card-amber {
     -fx-background-color: #e9d39e;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: #d4be85;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 3);
 }
+
 .stat-card-amber .stat-label,
 .stat-card-amber .stat-sub {
     -fx-text-fill: #52120f;
@@ -271,6 +288,36 @@
     -fx-background-color: #dfc78a;
 }
 
+.table-action-btn-info {
+    -fx-background-color: #49810420;
+    -fx-text-fill: #498104;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 8;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.table-action-btn-info:hover {
+    -fx-background-color: #498104;
+    -fx-text-fill: white;
+}
+
+.table-action-btn-estimasi {
+    -fx-background-color: #e9d39e60;
+    -fx-text-fill: #52120f;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 8;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.table-action-btn-estimasi:hover {
+    -fx-background-color: #e9d39e;
+    -fx-text-fill: #153715;
+}
+
 /* ===== ALERT LABEL ===== */
 .alert-label {
     -fx-background-color: #fef3c7;
@@ -365,4 +412,17 @@
 }
 .scroll-bar .increment-button, .scroll-bar .decrement-button {
     -fx-background-color: transparent;
+}
+
+.satuan-label {
+    -fx-background-color: #b0bc6d20;
+    -fx-border-color: #e9d39e;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 12;
+    -fx-text-fill: #727f33;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-min-width: 45;
+    -fx-alignment: center;
 }

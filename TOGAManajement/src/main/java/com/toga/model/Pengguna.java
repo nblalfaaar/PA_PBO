@@ -16,17 +16,19 @@ public class Pengguna {
     public void   setId(int id)   { this.id = id; }
 
     public String getNama() { return nama; }
-    public boolean setNama(String nama) {
-        if (StringUtils.isBlank(nama)) return false;
+    public void setNama(String nama) {
+        if (StringUtils.isBlank(nama)) {
+            throw new IllegalArgumentException("Nama tidak boleh kosong!");
+        }
         this.nama = nama;
-        return true;
     }
 
     public String getAlamat() { return alamat; }
-    public boolean setAlamat(String alamat) {
-        if (StringUtils.isBlank(alamat)) return false;
+    public void setAlamat(String alamat) {
+        if (StringUtils.isBlank(alamat)) {
+            throw new IllegalArgumentException("Alamat tidak boleh kosong!");
+        }
         this.alamat = alamat;
-        return true;
     }
 
     @Override

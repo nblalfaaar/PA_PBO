@@ -13,22 +13,22 @@
 
         <!-- STAT CARDS -->
         <HBox spacing="12">
-            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="4">
                 <Label text="Total Tanaman" styleClass="stat-label"/>
                 <Label fx:id="lblTotalTanaman" text="0" styleClass="stat-value"/>
                 <Label text="semua jenis" styleClass="stat-sub"/>
             </VBox>
-            <VBox styleClass="stat-card stat-card-green" HBox.hgrow="ALWAYS">
+            <VBox styleClass="stat-card-green" HBox.hgrow="ALWAYS" spacing="4">
                 <Label text="Mendekati Panen" styleClass="stat-label"/>
                 <Label fx:id="lblSiapPanen" text="0" styleClass="stat-value"/>
                 <Label text="dalam 30 hari" styleClass="stat-sub"/>
             </VBox>
-            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="4">
                 <Label text="Total Pengguna" styleClass="stat-label"/>
                 <Label fx:id="lblTotalPengguna" text="0" styleClass="stat-value"/>
                 <Label text="anggota terdaftar" styleClass="stat-sub"/>
             </VBox>
-            <VBox styleClass="stat-card stat-card-amber" HBox.hgrow="ALWAYS">
+            <VBox styleClass="stat-card-amber" HBox.hgrow="ALWAYS" spacing="4">
                 <Label text="Jadwal Hari Ini" styleClass="stat-label"/>
                 <Label fx:id="lblJadwalHariIni" text="0" styleClass="stat-value"/>
                 <Label text="belum dilakukan" styleClass="stat-sub"/>

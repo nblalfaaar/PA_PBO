@@ -4,19 +4,29 @@ import com.toga.dto.PerawatanDTO;
 import com.toga.dto.PenggunaDTO;
 import com.toga.repository.impl.PerawatanRepositoryImpl;
 import com.toga.repository.impl.PenggunaRepositoryImpl;
+import com.toga.repository.impl.TanamanRepositoryImpl;
 import com.toga.service.PerawatanService;
 import com.toga.service.PenggunaService;
+import com.toga.service.TanamanService;
 import com.toga.service.impl.PerawatanServiceImpl;
 import com.toga.service.impl.PenggunaServiceImpl;
+import com.toga.service.impl.TanamanServiceImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PerawatanController {
 
@@ -33,18 +43,22 @@ public class PerawatanController {
     @FXML private TableColumn<PerawatanDTO, String>    colStatus;
     @FXML private TableColumn<PerawatanDTO, String>    colPetugas;
 
-    private final PerawatanService perawatanService =
-            new PerawatanServiceImpl(new PerawatanRepositoryImpl());
-    private final PenggunaService penggunaService =
-            new PenggunaServiceImpl(new PenggunaRepositoryImpl());
+    private final PerawatanService perawatanService;
+    private final PenggunaService penggunaService;
+    private final TanamanService tanamanService;
 
     private final ObservableList<PerawatanDTO> data = FXCollections.observableArrayList();
 
-    // Map nama → id untuk tanaman dan pengguna
-    private final HashMap<String, Integer> tanamanMap  = new HashMap<>();
-    private final HashMap<String, Integer> penggunaMap = new HashMap<>();
+    private final Map<String, Integer> tanamanMap = new HashMap<>();
+    private final Map<String, Integer> penggunaMap = new HashMap<>();
 
     private int selectedId = -1;
+
+    public PerawatanController() {
+        this.perawatanService = new PerawatanServiceImpl(new PerawatanRepositoryImpl());
+        this.penggunaService = new PenggunaServiceImpl(new PenggunaRepositoryImpl());
+        this.tanamanService = new TanamanServiceImpl(new TanamanRepositoryImpl());
+    }
 
     @FXML
     public void initialize() {
@@ -70,16 +84,20 @@ public class PerawatanController {
 
     @FXML
     public void handleTambah() {
-        String    namaTanaman = cmbTanaman.getValue();
-        String    jenis       = cmbJenisPerawatan.getValue();
-        LocalDate tanggal     = dpTanggal.getValue();
+        String namaTanaman = cmbTanaman.getValue();
+        String jenis = cmbJenisPerawatan.getValue();
+        LocalDate tanggal = dpTanggal.getValue();
 
         if (namaTanaman == null || jenis == null || tanggal == null) {
-            showAlert("Semua field harus diisi!"); return;
+            showAlert("Semua field harus diisi!");
+            return;
         }
 
-        int tanamanId = tanamanMap.getOrDefault(namaTanaman, -1);
-        if (tanamanId == -1) { showAlert("Tanaman tidak ditemukan!"); return; }
+        Integer tanamanId = tanamanMap.get(namaTanaman);
+        if (tanamanId == null) {
+            showAlert("Tanaman tidak ditemukan!");
+            return;
+        }
 
         try {
             perawatanService.tambahJadwal(tanamanId, jenis, tanggal);
@@ -92,15 +110,22 @@ public class PerawatanController {
 
     @FXML
     public void handleTandaiSelesai() {
-        if (selectedId == -1) { showAlert("Pilih jadwal terlebih dahulu!"); return; }
+        if (selectedId == -1) {
+            showAlert("Pilih jadwal terlebih dahulu!");
+            return;
+        }
 
         String namaPengguna = cmbPengguna.getValue();
         if (namaPengguna == null) {
-            showAlert("Pilih pengguna yang melakukan perawatan!"); return;
+            showAlert("Pilih pengguna yang melakukan perawatan!");
+            return;
         }
 
-        int penggunaId = penggunaMap.getOrDefault(namaPengguna, -1);
-        if (penggunaId == -1) { showAlert("Pengguna tidak ditemukan!"); return; }
+        Integer penggunaId = penggunaMap.get(namaPengguna);
+        if (penggunaId == null) {
+            showAlert("Pengguna tidak ditemukan!");
+            return;
+        }
 
         try {
             perawatanService.tandaiSelesai(selectedId, penggunaId, namaPengguna);
@@ -113,15 +138,24 @@ public class PerawatanController {
 
     @FXML
     public void handleHapus() {
-        if (selectedId == -1) { showAlert("Pilih jadwal terlebih dahulu!"); return; }
+        if (selectedId == -1) {
+            showAlert("Pilih jadwal terlebih dahulu!");
+            return;
+        }
+
         Alert konfirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "Yakin ingin menghapus jadwal ini?", ButtonType.YES, ButtonType.NO);
+
         konfirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.YES) {
-                perawatanService.hapusJadwal(selectedId);
-                loadData();
-                selectedId = -1;
-                showInfo("Jadwal berhasil dihapus!");
+                try {
+                    perawatanService.hapusJadwal(selectedId);
+                    loadData();
+                    selectedId = -1;
+                    showInfo("Jadwal berhasil dihapus!");
+                } catch (Exception ex) {
+                    showAlert("Gagal menghapus: " + ex.getMessage());
+                }
             }
         });
     }
@@ -129,17 +163,15 @@ public class PerawatanController {
     private void loadCombo() {
         tanamanMap.clear();
         penggunaMap.clear();
-        ObservableList<String> tanamanList  = FXCollections.observableArrayList();
+
+        ObservableList<String> tanamanList = FXCollections.observableArrayList();
         ObservableList<String> penggunaList = FXCollections.observableArrayList();
 
-        try (java.sql.Connection conn = com.toga.config.DBConnection.getConnection()) {
-            java.sql.ResultSet rs1 = conn.createStatement()
-                    .executeQuery("SELECT id, nama FROM tanaman ORDER BY nama");
-            while (rs1.next()) {
-                tanamanMap.put(rs1.getString("nama"), rs1.getInt("id"));
-                tanamanList.add(rs1.getString("nama"));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
+        var tanamanDTOList = tanamanService.getAllTanaman();
+        for (var dto : tanamanDTOList) {
+            tanamanMap.put(dto.getNama(), dto.getId());
+            tanamanList.add(dto.getNama());
+        }
 
         List<PenggunaDTO> listPengguna = penggunaService.getAllPengguna();
         for (PenggunaDTO p : listPengguna) {
@@ -148,10 +180,14 @@ public class PerawatanController {
         }
 
         cmbTanaman.setItems(tanamanList);
-        if (!tanamanList.isEmpty()) cmbTanaman.setValue(tanamanList.getFirst());
+        if (!tanamanList.isEmpty()) {
+            cmbTanaman.setValue(tanamanList.getFirst());
+        }
 
         cmbPengguna.setItems(penggunaList);
-        if (!penggunaList.isEmpty()) cmbPengguna.setValue(penggunaList.getFirst());
+        if (!penggunaList.isEmpty()) {
+            cmbPengguna.setValue(penggunaList.getFirst());
+        }
     }
 
     private void loadData() {
@@ -159,6 +195,7 @@ public class PerawatanController {
         List<PerawatanDTO> list = perawatanService.getAllJadwal();
         data.addAll(list);
         tblJadwal.setItems(data);
+
         int belum = perawatanService.countBelumHariIni();
         lblBelumHariIni.setText(belum + " jadwal belum dilakukan hari ini");
     }

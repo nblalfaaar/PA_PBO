@@ -7,7 +7,7 @@ import java.util.List;
 public interface PanenRepository {
     List<PanenDTO> findAll();
     void save(int tanamanId, int penggunaId, String keterangan,
-              LocalDate tanggalPanen, String hasilPanen);
+              LocalDate tanggalPanen, int hasilPanen);
     void delete(int id);
     int findTanamanIdByPanenId(int panenId);
 }

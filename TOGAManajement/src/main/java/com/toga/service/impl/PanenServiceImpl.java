@@ -15,8 +15,6 @@ public class PanenServiceImpl implements PanenService {
     private final PanenRepository    panenRepository;
     private final TanamanRepository  tanamanRepository;
 
-    private static final String REGEX_HASIL = "[a-zA-Z0-9, ]+";
-
     public PanenServiceImpl(PanenRepository panenRepository,
                             TanamanRepository tanamanRepository) {
         this.panenRepository   = panenRepository;
@@ -30,14 +28,11 @@ public class PanenServiceImpl implements PanenService {
 
     @Override
     public void catatPanen(int tanamanId, int penggunaId, String keterangan,
-                           LocalDate tanggalPanen, String hasilPanen) {
+                           LocalDate tanggalPanen, int hasilPanen) {
         if (keterangan == null || keterangan.isBlank())
             throw new IllegalArgumentException("Keterangan harus diisi!");
-        if (hasilPanen == null || hasilPanen.isBlank())
-            throw new IllegalArgumentException("Hasil panen harus diisi!");
-        if (!hasilPanen.matches(REGEX_HASIL))
-            throw new IllegalArgumentException(
-                    "Hasil panen hanya boleh berisi huruf, angka, koma, dan spasi!");
+        if (hasilPanen <= 0)
+            throw new IllegalArgumentException("Hasil panen harus lebih dari 0!");
         if (tanggalPanen == null)
             throw new IllegalArgumentException("Tanggal panen harus diisi!");
 

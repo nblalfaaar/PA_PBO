@@ -7,6 +7,6 @@ import java.util.List;
 public interface PanenService {
     List<PanenDTO> getAllPanen();
     void catatPanen(int tanamanId, int penggunaId, String keterangan,
-                    LocalDate tanggalPanen, String hasilPanen);
+                    LocalDate tanggalPanen, int hasilPanen);
     void hapusPanen(int id);
 }

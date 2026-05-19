@@ -31,17 +31,17 @@
 
         <!-- SUMMARY CARDS -->
         <HBox spacing="12">
-            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="4">
                 <Label text="Total Panen" styleClass="stat-label"/>
                 <Label fx:id="lblTotalPanen" text="0" styleClass="stat-value"/>
                 <Label text="periode ini" styleClass="stat-sub"/>
             </VBox>
-            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="4">
                 <Label text="Total Perawatan" styleClass="stat-label"/>
                 <Label fx:id="lblTotalPerawatan" text="0" styleClass="stat-value"/>
                 <Label text="kegiatan" styleClass="stat-sub"/>
             </VBox>
-            <VBox styleClass="stat-card stat-card-green" HBox.hgrow="ALWAYS">
+            <VBox styleClass="stat-card-green" HBox.hgrow="ALWAYS" spacing="4">
                 <Label text="Pengguna Aktif" styleClass="stat-label"/>
                 <Label fx:id="lblPenggunaAktif" text="0" styleClass="stat-value"/>
                 <Label text="ikut memanen" styleClass="stat-sub"/>

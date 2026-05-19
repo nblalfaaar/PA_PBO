@@ -13,6 +13,12 @@ public abstract class Tanaman {
     private LocalDate tanggalTanam;
     private int estimasiHari;
 
+    public Tanaman(){
+        this.nama = "nama tanaman";
+        this.namaLatin = "nama latin";
+        this.manfaat = "manfaat";
+    }
+
     public Tanaman(String nama, String namaLatin, String manfaat,
                    StatusTanaman status, LocalDate tanggalTanam, int estimasiHari) {
         this.nama = nama;

@@ -1,7 +1,12 @@
 package com.toga.service.impl;
 
 import com.toga.dto.TanamanDTO;
-import com.toga.model.*;
+import com.toga.model.ITanamanObat;
+import com.toga.model.StatusTanaman;
+import com.toga.model.Tanaman;
+import com.toga.model.TanamanBuah;
+import com.toga.model.TanamanDaun;
+import com.toga.model.TanamanRempah;
 import com.toga.repository.TanamanRepository;
 import com.toga.service.TanamanService;
 
@@ -171,5 +176,10 @@ public class TanamanServiceImpl implements TanamanService {
                 t.getId(), t.getNama(), t.getNamaLatin(), t.getManfaat(),
                 t.getJenis(), t.getPropertiTambahan(),
                 t.getStatus().name(), t.getTanggalTanam(), t.getEstimasiHari());
+    }
+
+    @Override
+    public List<TanamanDTO> getAllTanamanForCombo() {
+        return tanamanRepository.findAllForCombo();
     }
 }

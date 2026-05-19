@@ -30,8 +30,6 @@ public class PerawatanServiceImpl implements PerawatanService {
 
         if (StringUtils.isBlank(jenisPerawatan))
             throw new IllegalArgumentException("Jenis perawatan harus diisi!");
-        if (tanggal == null)
-            throw new IllegalArgumentException("Tanggal harus diisi!");
 
         perawatanRepository.save(tanamanId, jenisPerawatan, tanggal);
     }

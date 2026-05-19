@@ -73,8 +73,6 @@ public class PenggunaServiceImpl implements PenggunaService {
         penggunaRepository.delete(id);
     }
 
-    // ===== PRIVATE HELPERS =====
-
     private void validasiDTO(PenggunaDTO dto) {
         if (dto.getNama() == null || dto.getNama().isBlank())
             throw new IllegalArgumentException("Nama harus diisi!");

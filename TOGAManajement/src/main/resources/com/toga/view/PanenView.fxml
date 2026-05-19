@@ -31,7 +31,10 @@
                 <DatePicker fx:id="dpTanggalPanen" styleClass="form-field" maxWidth="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
 
                 <Label text="Hasil Panen" styleClass="form-label" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                <TextField fx:id="tfHasilPanen" promptText="cth: 2 kg / 50 lembar" styleClass="form-field" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <HBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <TextField fx:id="tfHasilPanen" promptText="0" styleClass="form-field" HBox.hgrow="ALWAYS"/>
+                    <Label text="kg" styleClass="satuan-label" alignment="CENTER"/>
+                </HBox>
 
                 <Label text="Keterangan" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
                 <TextArea fx:id="taKeterangan" prefHeight="50" promptText="Catatan tambahan..." styleClass="form-field" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2"/>
@@ -51,7 +54,7 @@
                     <TableColumn fx:id="colTanaman" text="Tanaman" prefWidth="140"/>
                     <TableColumn fx:id="colPengguna" text="Pengguna" prefWidth="140"/>
                     <TableColumn fx:id="colTanggal" text="Tanggal" prefWidth="110"/>
-                    <TableColumn fx:id="colHasil" text="Hasil" prefWidth="100"/>
+                    <TableColumn fx:id="colHasil" text="Hasil (kg)" prefWidth="100"/>
                     <TableColumn fx:id="colKeterangan" text="Keterangan" prefWidth="220"/>
                 </columns>
             </TableView>
