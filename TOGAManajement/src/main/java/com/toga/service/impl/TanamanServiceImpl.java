@@ -229,4 +229,9 @@ public class TanamanServiceImpl implements TanamanService {
     public List<TanamanDTO> getAllTanamanForCombo() {
         return tanamanRepository.findAllForCombo();
     }
+
+    @Override
+    public List<TanamanDTO> getAllTanamanForPerawatan() {
+        return tanamanRepository.findAllForPerawatan();
+    }
 }

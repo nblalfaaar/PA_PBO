@@ -26,9 +26,7 @@ public class PerawatanRepositoryImpl implements PerawatanRepository {
                 + "       p.nama AS nama_petugas "
                 + "FROM jadwal_perawatan j "
                 + "JOIN tanaman t ON j.tanaman_id = t.id "
-                + "LEFT JOIN catatan_perawatan cp "
-                + "       ON cp.tanaman_id = j.tanaman_id "
-                + "      AND cp.tanggal    = j.tanggal "
+                + "LEFT JOIN catatan_perawatan cp ON cp.jadwal_id = j.id "
                 + "LEFT JOIN pengguna p ON cp.pengguna_id = p.id "
                 + "ORDER BY j.tanggal DESC";
 
@@ -151,11 +149,9 @@ public class PerawatanRepositoryImpl implements PerawatanRepository {
     }
 
     @Override
-    public void saveCatatanPerawatan(int tanamanId, int penggunaId,
+    public void saveCatatanPerawatan(int jadwalId, int tanamanId, int penggunaId,
                                      String keterangan, LocalDate tanggal) {
-        String sql = "INSERT INTO catatan_perawatan "
-                + "(tanaman_id, pengguna_id, keterangan, tanggal) "
-                + "VALUES (?,?,?,?)";
+        String sql = "INSERT INTO catatan_perawatan (jadwal_id, pengguna_id, keterangan) VALUES (?,?,?)";
 
         try (Connection conn = DBConnection.getConnection()) {
             if (conn == null) {
@@ -163,14 +159,14 @@ public class PerawatanRepositoryImpl implements PerawatanRepository {
                 return;
             }
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, tanamanId);
+                ps.setInt(1, jadwalId);
                 ps.setInt(2, penggunaId);
                 ps.setString(3, keterangan);
-                ps.setDate(4, Date.valueOf(tanggal));
                 ps.executeUpdate();
+                LOGGER.info("Catatan perawatan tersimpan untuk jadwalId: " + jadwalId);
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Gagal saveCatatanPerawatan. TanamanId: " + tanamanId + ", PenggunaId: " + penggunaId, e);
+            LOGGER.log(Level.SEVERE, "Gagal saveCatatanPerawatan. JadwalId: " + jadwalId, e);
         }
     }
 
@@ -192,5 +188,30 @@ public class PerawatanRepositoryImpl implements PerawatanRepository {
             LOGGER.log(Level.SEVERE, "Gagal countBelumHariIni", e);
         }
         return 0;
+    }
+
+    @Override
+    public boolean isJadwalExist(int tanamanId, String jenisPerawatan, LocalDate tanggal) {
+        String sql = "SELECT COUNT(*) FROM jadwal_perawatan "
+                + "WHERE tanaman_id = ? AND jenis_perawatan = ? AND tanggal = ?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) {
+                LOGGER.severe("Koneksi database NULL saat isJadwalExist");
+                return false;
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, tanamanId);
+                ps.setString(2, jenisPerawatan);
+                ps.setDate(3, Date.valueOf(tanggal));
+                try (ResultSet rs = ps.executeQuery()) {
+                    return rs.next() && rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Gagal isJadwalExist. TanamanId: " + tanamanId +
+                    ", Jenis: " + jenisPerawatan + ", Tanggal: " + tanggal, e);
+            return false;
+        }
     }
 }

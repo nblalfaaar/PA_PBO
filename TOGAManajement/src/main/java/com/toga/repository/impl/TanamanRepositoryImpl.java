@@ -17,8 +17,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -221,28 +219,6 @@ public class TanamanRepositoryImpl implements TanamanRepository {
     }
 
     @Override
-    public Map<String, Integer> getTanamanIdMap() {
-        Map<String, Integer> map = new HashMap<>();
-        String sql = "SELECT id, nama FROM tanaman ORDER BY nama";
-
-        try (Connection conn = DBConnection.getConnection()) {
-            if (conn == null) {
-                LOGGER.severe("Koneksi database NULL saat getTanamanIdMap");
-                return map;
-            }
-            try (PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    map.put(rs.getString("nama"), rs.getInt("id"));
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Gagal getTanamanIdMap", e);
-        }
-        return map;
-    }
-
-    @Override
     public List<TanamanDTO> findAllForCombo() {
         List<TanamanDTO> list = new ArrayList<>();
         String sql = "SELECT id, nama, nama_latin, manfaat, jenis, properti_tambahan, status, tanggal_tanam, estimasi_hari "
@@ -271,6 +247,39 @@ public class TanamanRepositoryImpl implements TanamanRepository {
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Gagal findAllForCombo", e);
+        }
+        return list;
+    }
+
+    @Override
+    public List<TanamanDTO> findAllForPerawatan() {
+        List<TanamanDTO> list = new ArrayList<>();
+        String sql = "SELECT id, nama, nama_latin, manfaat, jenis, properti_tambahan, status, tanggal_tanam, estimasi_hari "
+                + "FROM tanaman WHERE status != 'SUDAH_DIPANEN' ORDER BY nama";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) {
+                LOGGER.severe("Koneksi database NULL saat findAllForPerawatan");
+                return list;
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    TanamanDTO dto = new TanamanDTO();
+                    dto.setId(rs.getInt("id"));
+                    dto.setNama(rs.getString("nama"));
+                    dto.setNamaLatin(rs.getString("nama_latin"));
+                    dto.setManfaat(rs.getString("manfaat"));
+                    dto.setJenis(rs.getString("jenis"));
+                    dto.setPropertiTambahan(rs.getString("properti_tambahan"));
+                    dto.setStatus(rs.getString("status"));
+                    dto.setTanggalTanam(rs.getDate("tanggal_tanam").toLocalDate());
+                    dto.setEstimasiHari(rs.getInt("estimasi_hari"));
+                    list.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Gagal findAllForPerawatan", e);
         }
         return list;
     }

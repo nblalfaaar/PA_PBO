@@ -27,8 +27,12 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PerawatanController {
+
+    private static final Logger LOGGER = Logger.getLogger(PerawatanController.class.getName());
 
     @FXML private ComboBox<String> cmbTanaman;
     @FXML private ComboBox<String> cmbJenisPerawatan;
@@ -105,6 +109,9 @@ public class PerawatanController {
             showInfo("Jadwal berhasil ditambahkan!");
         } catch (IllegalArgumentException ex) {
             showAlert(ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Gagal tambah jadwal", ex);
+            showAlert("Terjadi kesalahan sistem. Silakan coba lagi.");
         }
     }
 
@@ -133,6 +140,9 @@ public class PerawatanController {
             showInfo("Jadwal ditandai selesai dan dicatat oleh " + namaPengguna + "!");
         } catch (IllegalArgumentException ex) {
             showAlert(ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Gagal tandai selesai jadwal id: " + selectedId, ex);
+            showAlert("Terjadi kesalahan sistem. Silakan coba lagi.");
         }
     }
 
@@ -154,6 +164,7 @@ public class PerawatanController {
                     selectedId = -1;
                     showInfo("Jadwal berhasil dihapus!");
                 } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Gagal hapus jadwal id: " + selectedId, ex);
                     showAlert("Gagal menghapus: " + ex.getMessage());
                 }
             }
@@ -167,44 +178,73 @@ public class PerawatanController {
         ObservableList<String> tanamanList = FXCollections.observableArrayList();
         ObservableList<String> penggunaList = FXCollections.observableArrayList();
 
-        var tanamanDTOList = tanamanService.getAllTanaman();
-        for (var dto : tanamanDTOList) {
-            tanamanMap.put(dto.getNama(), dto.getId());
-            tanamanList.add(dto.getNama());
+        try {
+            var tanamanDTOList = tanamanService.getAllTanamanForPerawatan();
+            if (tanamanDTOList.isEmpty()) {
+                tanamanList.add("-- Tidak ada tanaman aktif --");
+            } else {
+                for (var dto : tanamanDTOList) {
+                    tanamanMap.put(dto.getNama(), dto.getId());
+                    tanamanList.add(dto.getNama());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Gagal load tanaman combo", e);
+            tanamanList.add("-- Gagal memuat data --");
         }
 
-        List<PenggunaDTO> listPengguna = penggunaService.getAllPengguna();
-        for (PenggunaDTO p : listPengguna) {
-            penggunaMap.put(p.getNama(), p.getId());
-            penggunaList.add(p.getNama());
+        try {
+            List<PenggunaDTO> listPengguna = penggunaService.getAllPengguna();
+            if (listPengguna.isEmpty()) {
+                penggunaList.add("-- Tidak ada pengguna --");
+            } else {
+                for (PenggunaDTO p : listPengguna) {
+                    penggunaMap.put(p.getNama(), p.getId());
+                    penggunaList.add(p.getNama());
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Gagal load pengguna combo", e);
+            penggunaList.add("-- Gagal memuat data --");
         }
 
         cmbTanaman.setItems(tanamanList);
-        if (!tanamanList.isEmpty()) {
+        if (!tanamanList.isEmpty() && !tanamanList.getFirst().equals("-- Tidak ada tanaman aktif --")) {
             cmbTanaman.setValue(tanamanList.getFirst());
         }
 
         cmbPengguna.setItems(penggunaList);
-        if (!penggunaList.isEmpty()) {
+        if (!penggunaList.isEmpty() && !penggunaList.getFirst().equals("-- Tidak ada pengguna --")) {
             cmbPengguna.setValue(penggunaList.getFirst());
         }
     }
 
     private void loadData() {
         data.clear();
-        List<PerawatanDTO> list = perawatanService.getAllJadwal();
-        data.addAll(list);
-        tblJadwal.setItems(data);
+        try {
+            List<PerawatanDTO> list = perawatanService.getAllJadwal();
+            data.addAll(list);
+            tblJadwal.setItems(data);
 
-        int belum = perawatanService.countBelumHariIni();
-        lblBelumHariIni.setText(belum + " jadwal belum dilakukan hari ini");
+            int belum = perawatanService.countBelumHariIni();
+            lblBelumHariIni.setText(belum + " jadwal belum dilakukan hari ini");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Gagal load data perawatan", e);
+            showAlert("Gagal memuat data perawatan");
+        }
     }
 
     private void showAlert(String msg) {
-        new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+        alert.setTitle("Peringatan");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 
     private void showInfo(String msg) {
-        new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+        alert.setTitle("Informasi");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 }

@@ -64,3 +64,12 @@ WHERE status != 'SUDAH_DIPANEN';
 
 ALTER TABLE catatan_panen
 MODIFY COLUMN hasil_panen INT NOT NULL;
+
+ALTER TABLE catatan_perawatan ADD COLUMN jadwal_id INT;
+
+ALTER TABLE catatan_perawatan 
+ADD FOREIGN KEY (jadwal_id) REFERENCES jadwal_perawatan(id) ON DELETE CASCADE;
+
+ALTER TABLE catatan_perawatan DROP FOREIGN KEY catatan_perawatan_ibfk_1;
+ALTER TABLE catatan_perawatan DROP COLUMN tanaman_id;
+ALTER TABLE catatan_perawatan DROP COLUMN tanggal;

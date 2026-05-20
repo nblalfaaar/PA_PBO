@@ -12,4 +12,5 @@ public interface TanamanService {
     String getEstimasiPanen(TanamanDTO dto);
     List<TanamanDTO> getAllTanamanForCombo();
     void updateAllStatusOtomatis();
+    List<TanamanDTO> getAllTanamanForPerawatan();
 }

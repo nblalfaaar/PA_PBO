@@ -10,7 +10,9 @@ public interface PerawatanRepository {
     void save(int tanamanId, String jenisPerawatan, LocalDate tanggal);
     void tandaiSelesai(int jadwalId);
     void delete(int id);
-    void saveCatatanPerawatan(int tanamanId, int penggunaId,
+    void saveCatatanPerawatan(int jadwalId, int tanamanId, int penggunaId,
                               String keterangan, LocalDate tanggal);
+
     int countBelumHariIni();
+    boolean isJadwalExist(int tanamanId, String jenisPerawatan, LocalDate tanggal);
 }

@@ -4,7 +4,6 @@ import com.toga.model.Tanaman;
 import java.time.LocalDate;
 import java.util.List;
 import com.toga.dto.TanamanDTO;
-import java.util.Map;
 
 public interface TanamanRepository {
     List<Tanaman> findAll();
@@ -17,6 +16,6 @@ public interface TanamanRepository {
                        String properti, LocalDate tanggal, int estimasiHari);
     String findStatusById(int id);
     void updateStatus(int id, String status);
-    Map<String, Integer> getTanamanIdMap();
     List<TanamanDTO> findAllForCombo();
+    List<TanamanDTO> findAllForPerawatan();
 }

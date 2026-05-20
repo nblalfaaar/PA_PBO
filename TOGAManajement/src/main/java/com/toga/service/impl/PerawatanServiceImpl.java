@@ -7,8 +7,11 @@ import com.toga.service.PerawatanService;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class PerawatanServiceImpl implements PerawatanService {
+
+    private static final Logger LOGGER = Logger.getLogger(PerawatanServiceImpl.class.getName());
 
     private final PerawatanRepository perawatanRepository;
 
@@ -31,7 +34,14 @@ public class PerawatanServiceImpl implements PerawatanService {
         if (StringUtils.isBlank(jenisPerawatan))
             throw new IllegalArgumentException("Jenis perawatan harus diisi!");
 
+        if (perawatanRepository.isJadwalExist(tanamanId, jenisPerawatan, tanggal)) {
+            throw new IllegalArgumentException("Jadwal perawatan dengan jenis '" + jenisPerawatan +
+                    "' untuk tanaman ini pada tanggal " + tanggal + " sudah ada!");
+        }
+
         perawatanRepository.save(tanamanId, jenisPerawatan, tanggal);
+        LOGGER.info("Jadwal perawatan ditambahkan. TanamanId: " + tanamanId +
+                ", Jenis: " + jenisPerawatan + ", Tanggal: " + tanggal);
     }
 
     @Override
@@ -45,13 +55,18 @@ public class PerawatanServiceImpl implements PerawatanService {
         perawatanRepository.tandaiSelesai(jadwalId);
 
         String keterangan = jadwal.getJenisPerawatan() + " oleh " + namaPengguna;
-        perawatanRepository.saveCatatanPerawatan(
-                jadwal.getTanamanId(), penggunaId, keterangan, jadwal.getTanggal());
+
+        perawatanRepository.saveCatatanPerawatan(jadwalId, jadwal.getTanamanId(),
+                penggunaId, keterangan, jadwal.getTanggal());
+
+        LOGGER.info("Jadwal perawatan ditandai selesai. JadwalId: " + jadwalId +
+                ", PenggunaId: " + penggunaId + ", Petugas: " + namaPengguna);
     }
 
     @Override
     public void hapusJadwal(int id) {
         perawatanRepository.delete(id);
+        LOGGER.info("Jadwal perawatan dihapus. Id: " + id);
     }
 
     @Override
