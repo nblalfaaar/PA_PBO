@@ -13,7 +13,7 @@
 
         <!-- FORM -->
         <VBox styleClass="card" spacing="12">
-            <Label text="📝 Form Tanaman" styleClass="section-title"/>
+            <Label text="Form Tanaman" styleClass="section-title"/>
 
             <GridPane hgap="14" vgap="10">
                 <columnConstraints>
@@ -48,32 +48,24 @@
                 <TextArea fx:id="taManfaat" prefHeight="50" promptText="Manfaat tanaman..." styleClass="form-field" GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.columnSpan="3"/>
             </GridPane>
 
-            <!-- HANYA Tombol CRUD (Info & Estimasi sudah pindah ke tabel) -->
             <HBox spacing="10">
                 <Button text="Tambah" onAction="#handleTambah" styleClass="btn-primary"/>
-                <Button text="Ubah" onAction="#handleUbah" styleClass="btn-secondary"/>
-                <Button text="Hapus" onAction="#handleHapus" styleClass="btn-danger"/>
+                <Button text="Ubah"   onAction="#handleUbah"   styleClass="btn-secondary"/>
+                <Button text="Hapus"  onAction="#handleHapus"  styleClass="btn-danger"/>
             </HBox>
         </VBox>
 
-        <!-- TABLE DENGAN KOLOM AKSI -->
+        <!-- TABLE -->
         <VBox styleClass="card" spacing="10">
-            <Label text="🌱 Daftar Tanaman" styleClass="section-title"/>
+            <Label text="Daftar Tanaman" styleClass="section-title"/>
             <TableView fx:id="tblTanaman" styleClass="modern-table" prefHeight="300">
                 <columns>
-                    <TableColumn fx:id="colNama" text="Nama" prefWidth="140"/>
-                    <TableColumn fx:id="colJenis" text="Jenis" prefWidth="130"/>
-                    <TableColumn fx:id="colNamaLatin" text="Nama Latin" prefWidth="180"/>
-                    <TableColumn fx:id="colEstimasi" text="Estimasi (hari)" prefWidth="100"/>
-                    <TableColumn fx:id="colStatus" text="Status" prefWidth="110"/>
-
-                    <!-- KOLOM AKSI -->
-                    <TableColumn text="Aksi" prefWidth="150">
-                        <columns>
-                            <TableColumn fx:id="colActionInfo" text="🌿 Info" prefWidth="75"/>
-                            <TableColumn fx:id="colActionEstimasi" text="📅 Estimasi" prefWidth="75"/>
-                        </columns>
-                    </TableColumn>
+                    <TableColumn fx:id="colNama"      text="Nama"            prefWidth="140"/>
+                    <TableColumn fx:id="colJenis"     text="Jenis"           prefWidth="130"/>
+                    <TableColumn fx:id="colNamaLatin" text="Nama Latin"      prefWidth="180"/>
+                    <TableColumn fx:id="colEstimasi"  text="Estimasi (hari)" prefWidth="100"/>
+                    <TableColumn fx:id="colStatus"    text="Status"          prefWidth="120"/>
+                    <TableColumn fx:id="colAksi"      text="Aksi"            prefWidth="180"/>
                 </columns>
             </TableView>
         </VBox>

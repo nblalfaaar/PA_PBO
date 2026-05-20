@@ -2,8 +2,11 @@ package com.toga.controller;
 
 import com.toga.dto.DashboardDTO;
 import com.toga.repository.impl.DashboardRepositoryImpl;
+import com.toga.repository.impl.TanamanRepositoryImpl;
 import com.toga.service.DashboardService;
+import com.toga.service.TanamanService;
 import com.toga.service.impl.DashboardServiceImpl;
+import com.toga.service.impl.TanamanServiceImpl;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -28,9 +31,11 @@ public class DashboardController {
     @FXML private TableColumn<DashboardDTO.MendekatiPanenRow, String> colSisa;
 
     private final DashboardService dashboardService;
+    private final TanamanService tanamanService;  // ✅ TAMBAHKAN
 
     public DashboardController() {
         this.dashboardService = new DashboardServiceImpl(new DashboardRepositoryImpl());
+        this.tanamanService = new TanamanServiceImpl(new TanamanRepositoryImpl());  // ✅ TAMBAHKAN
     }
 
     @FXML
@@ -42,6 +47,9 @@ public class DashboardController {
 
     private void loadDashboard() {
         try {
+            // ✅ UPDATE STATUS SEMUA TANAMAN DULU sebelum ambil data dashboard
+            tanamanService.updateAllStatusOtomatis();
+
             DashboardDTO data = dashboardService.getDashboardData();
 
             lblTotalTanaman.setText(String.valueOf(data.getTotalTanaman()));
@@ -57,7 +65,6 @@ public class DashboardController {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Gagal memuat data dashboard", e);
             showError("Gagal memuat data dashboard. Silakan coba lagi.");
-            showError("Gagal memuat data dashboard: " + e.getMessage());
         }
     }
 
@@ -66,6 +73,8 @@ public class DashboardController {
                 javafx.scene.control.Alert.AlertType.ERROR, msg,
                 javafx.scene.control.ButtonType.OK
         );
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
         alert.showAndWait();
     }
 }

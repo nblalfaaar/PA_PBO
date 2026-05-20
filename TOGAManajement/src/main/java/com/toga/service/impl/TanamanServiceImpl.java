@@ -13,8 +13,12 @@ import com.toga.service.TanamanService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 public class TanamanServiceImpl implements TanamanService {
+
+    private static final Logger LOGGER = Logger.getLogger(TanamanServiceImpl.class.getName());
 
     private final TanamanRepository tanamanRepository;
     private static final String REGEX_HURUF_SPASI = "[a-zA-Z ]+";
@@ -47,18 +51,31 @@ public class TanamanServiceImpl implements TanamanService {
     }
 
     @Override
-    public void ubahTanaman(TanamanDTO dto) {
+    public boolean ubahTanaman(TanamanDTO dto) {
         validasiDTO(dto);
+
+        Tanaman existing = tanamanRepository.findById(dto.getId());
+        if (existing == null) {
+            throw new IllegalArgumentException("Tanaman tidak ditemukan!");
+        }
+
+        boolean dataBerubah =
+                !Objects.equals(trim(existing.getNama()),             trim(dto.getNama()))            ||
+                        !Objects.equals(trim(existing.getNamaLatin()),        trim(dto.getNamaLatin()))        ||
+                        !Objects.equals(trim(existing.getManfaat()),          trim(dto.getManfaat()))          ||
+                        !Objects.equals(trim(existing.getPropertiTambahan()), trim(dto.getPropertiTambahan())) ||
+                        !Objects.equals(existing.getJenis(),                  dto.getJenis())                  ||
+                        !Objects.equals(existing.getTanggalTanam(),           dto.getTanggalTanam())           ||
+                        existing.getEstimasiHari() != dto.getEstimasiHari();
+
+        if (!dataBerubah) {
+            return false;
+        }
 
         if (tanamanRepository.isDuplikat(dto.getId(), dto.getNama(), dto.getNamaLatin(),
                 dto.getManfaat(), dto.getJenis(), dto.getPropertiTambahan(),
                 dto.getTanggalTanam(), dto.getEstimasiHari())) {
             throw new IllegalArgumentException("Data tanaman sudah ada! Tidak dapat menyimpan duplikat.");
-        }
-
-        Tanaman existing = tanamanRepository.findById(dto.getId());
-        if (existing == null) {
-            throw new IllegalArgumentException("Tanaman tidak ditemukan!");
         }
 
         existing.setNama(dto.getNama());
@@ -83,6 +100,7 @@ public class TanamanServiceImpl implements TanamanService {
         existing.setStatus(statusBaru);
 
         tanamanRepository.update(existing);
+        return true;
     }
 
     @Override
@@ -119,7 +137,36 @@ public class TanamanServiceImpl implements TanamanService {
                 + ":\n" + sisa + " hari lagi (" + bln + " bulan " + hr + " hari)";
     }
 
-    // ===== PRIVATE HELPERS =====
+    @Override
+    public void updateAllStatusOtomatis() {
+        List<TanamanDTO> semua = getAllTanaman();
+        int updated = 0;
+
+        for (TanamanDTO dto : semua) {
+            // Skip yang sudah dipanen
+            if ("SUDAH_DIPANEN".equals(dto.getStatus())) continue;
+
+            // Hitung status berdasarkan tanggal tanam dan estimasi hari
+            StatusTanaman statusBaru = Tanaman.hitungStatus(
+                    dto.getTanggalTanam(),
+                    dto.getEstimasiHari()
+            );
+
+            // Jika berbeda, update di database
+            if (!dto.getStatus().equals(statusBaru.name())) {
+                tanamanRepository.updateStatus(dto.getId(), statusBaru.name());
+                updated++;
+            }
+        }
+
+        if (updated > 0) {
+            LOGGER.info(updated + " tanaman statusnya diupdate otomatis");
+        }
+    }
+
+    private String trim(String s) {
+        return s == null ? "" : s.trim();
+    }
 
     private void validasiDTO(TanamanDTO dto) {
         if (dto.getNama() == null || dto.getNama().isBlank())

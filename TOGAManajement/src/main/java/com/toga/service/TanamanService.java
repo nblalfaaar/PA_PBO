@@ -6,9 +6,10 @@ import java.util.List;
 public interface TanamanService {
     List<TanamanDTO> getAllTanaman();
     void tambahTanaman(TanamanDTO dto);
-    void ubahTanaman(TanamanDTO dto);
+    boolean ubahTanaman(TanamanDTO dto);
     void hapusTanaman(int id);
     String getInfoObat(TanamanDTO dto);
     String getEstimasiPanen(TanamanDTO dto);
     List<TanamanDTO> getAllTanamanForCombo();
+    void updateAllStatusOtomatis();
 }

@@ -11,9 +11,9 @@
 
         <Label text="Kelola Pengguna" styleClass="page-title"/>
 
-        <!-- FORM COMPACT -->
+        <!-- FORM -->
         <VBox styleClass="card" spacing="12">
-            <Label text="👤 Form Pengguna" styleClass="section-title"/>
+            <Label text="Form Pengguna" styleClass="section-title"/>
 
             <HBox spacing="14">
                 <VBox spacing="4" HBox.hgrow="ALWAYS">
@@ -28,17 +28,17 @@
 
             <HBox spacing="10">
                 <Button text="Tambah" onAction="#handleTambah" styleClass="btn-primary"/>
-                <Button text="Ubah" onAction="#handleUbah" styleClass="btn-secondary"/>
-                <Button text="Hapus" onAction="#handleHapus" styleClass="btn-danger"/>
+                <Button text="Ubah"   onAction="#handleUbah"   styleClass="btn-secondary"/>
+                <Button text="Hapus"  onAction="#handleHapus"  styleClass="btn-danger"/>
             </HBox>
         </VBox>
 
         <!-- TABLE -->
         <VBox styleClass="card" spacing="10">
-            <Label text="📋 Daftar Pengguna" styleClass="section-title"/>
+            <Label text="Daftar Pengguna" styleClass="section-title"/>
             <TableView fx:id="tblPengguna" styleClass="modern-table" prefHeight="350">
                 <columns>
-                    <TableColumn fx:id="colNama" text="Nama" prefWidth="250"/>
+                    <TableColumn fx:id="colNama"   text="Nama"   prefWidth="250"/>
                     <TableColumn fx:id="colAlamat" text="Alamat" prefWidth="450"/>
                 </columns>
             </TableView>

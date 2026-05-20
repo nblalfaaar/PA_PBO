@@ -15,7 +15,7 @@
 
         <!-- FORM TAMBAH JADWAL -->
         <VBox styleClass="card" spacing="10">
-            <Label text="➕ Tambah Jadwal" styleClass="section-title"/>
+            <Label text="Tambah Jadwal" styleClass="section-title"/>
             <GridPane hgap="12" vgap="8">
                 <columnConstraints>
                     <ColumnConstraints percentWidth="33"/>
@@ -36,7 +36,7 @@
 
         <!-- FORM TANDAI SELESAI -->
         <VBox styleClass="card" spacing="10">
-            <Label text="✅ Tandai Selesai" styleClass="section-title"/>
+            <Label text="Tandai Selesai" styleClass="section-title"/>
             <HBox spacing="12" alignment="CENTER_LEFT">
                 <VBox spacing="4" HBox.hgrow="ALWAYS">
                     <Label text="Pilih Pengguna yang Merawat" styleClass="form-label"/>
@@ -46,21 +46,21 @@
         </VBox>
 
         <HBox spacing="10">
-            <Button text="Tambah Jadwal" onAction="#handleTambah" styleClass="btn-primary"/>
-            <Button text="Tandai Selesai" onAction="#handleTandaiSelesai" styleClass="btn-secondary"/>
-            <Button text="Hapus" onAction="#handleHapus" styleClass="btn-danger"/>
+            <Button text="Tambah Jadwal"   onAction="#handleTambah"        styleClass="btn-primary"/>
+            <Button text="Tandai Selesai"  onAction="#handleTandaiSelesai" styleClass="btn-secondary"/>
+            <Button text="Hapus"           onAction="#handleHapus"         styleClass="btn-danger"/>
         </HBox>
 
         <!-- TABLE -->
         <VBox styleClass="card" spacing="10">
-            <Label text="📅 Daftar Jadwal Perawatan" styleClass="section-title"/>
+            <Label text="Daftar Jadwal Perawatan" styleClass="section-title"/>
             <TableView fx:id="tblJadwal" styleClass="modern-table" prefHeight="300">
                 <columns>
-                    <TableColumn fx:id="colTanaman" text="Tanaman" prefWidth="150"/>
-                    <TableColumn fx:id="colJenis" text="Jenis Perawatan" prefWidth="140"/>
-                    <TableColumn fx:id="colTanggal" text="Tanggal" prefWidth="110"/>
-                    <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
-                    <TableColumn fx:id="colPetugas" text="Petugas" prefWidth="150"/>
+                    <TableColumn fx:id="colTanaman" text="Tanaman"         prefWidth="150"/>
+                    <TableColumn fx:id="colJenis"   text="Jenis Perawatan" prefWidth="140"/>
+                    <TableColumn fx:id="colTanggal" text="Tanggal"         prefWidth="110"/>
+                    <TableColumn fx:id="colStatus"  text="Status"          prefWidth="90"/>
+                    <TableColumn fx:id="colPetugas" text="Petugas"         prefWidth="150"/>
                 </columns>
             </TableView>
         </VBox>

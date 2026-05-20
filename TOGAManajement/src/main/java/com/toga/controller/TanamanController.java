@@ -7,8 +7,10 @@ import com.toga.service.impl.TanamanServiceImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 
 import java.time.LocalDate;
 import java.util.logging.Level;
@@ -28,15 +30,13 @@ public class TanamanController {
     @FXML private Label            lblProperti;
     @FXML private Label            lblStatusInfo;
 
-    @FXML private TableView<TanamanDTO>              tblTanaman;
-    @FXML private TableColumn<TanamanDTO, String>    colNama;
-    @FXML private TableColumn<TanamanDTO, String>    colJenis;
-    @FXML private TableColumn<TanamanDTO, String>    colNamaLatin;
-    @FXML private TableColumn<TanamanDTO, Integer>   colEstimasi;
-    @FXML private TableColumn<TanamanDTO, String>    colStatus;
-
-    @FXML private TableColumn<TanamanDTO, Void> colActionInfo;
-    @FXML private TableColumn<TanamanDTO, Void> colActionEstimasi;
+    @FXML private TableView<TanamanDTO>            tblTanaman;
+    @FXML private TableColumn<TanamanDTO, String>  colNama;
+    @FXML private TableColumn<TanamanDTO, String>  colJenis;
+    @FXML private TableColumn<TanamanDTO, String>  colNamaLatin;
+    @FXML private TableColumn<TanamanDTO, Integer> colEstimasi;
+    @FXML private TableColumn<TanamanDTO, String>  colStatus;
+    @FXML private TableColumn<TanamanDTO, Void>    colAksi;
 
     private final TanamanService tanamanService =
             new TanamanServiceImpl(new TanamanRepositoryImpl());
@@ -69,37 +69,34 @@ public class TanamanController {
         colEstimasi.setCellValueFactory(new PropertyValueFactory<>("estimasiHari"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        colActionInfo.setCellFactory(col -> new TableCell<>() {
-            private final Button btn = new Button("🌿 Info");
+        colAksi.setCellFactory(col -> new TableCell<>() {
+            private final Button btnInfo     = new Button("Info");
+            private final Button btnEstimasi = new Button("Estimasi");
+            private final HBox   box         = new HBox(6, btnInfo, btnEstimasi);
+
             {
-                btn.getStyleClass().add("table-action-btn-info");
-                btn.setOnAction(e -> {
+                box.setAlignment(Pos.CENTER);
+
+                btnInfo.getStyleClass().add("table-action-btn-info");
+                btnInfo.setTooltip(new Tooltip("Info Penggunaan Obat"));
+                btnInfo.setOnAction(e -> {
                     TanamanDTO tanaman = getTableView().getItems().get(getIndex());
                     handleInfoObat(tanaman);
                 });
-            }
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) setGraphic(null);
-                else setGraphic(btn);
-            }
-        });
 
-        colActionEstimasi.setCellFactory(col -> new TableCell<>() {
-            private final Button btn = new Button("📅 Estimasi");
-            {
-                btn.getStyleClass().add("table-action-btn-estimasi");
-                btn.setOnAction(e -> {
+                btnEstimasi.getStyleClass().add("table-action-btn-estimasi");
+                btnEstimasi.setTooltip(new Tooltip("Estimasi Panen"));
+                btnEstimasi.setOnAction(e -> {
                     TanamanDTO tanaman = getTableView().getItems().get(getIndex());
                     handleEstimasiPanen(tanaman);
                 });
             }
+
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) setGraphic(null);
-                else setGraphic(btn);
+                else       setGraphic(box);
             }
         });
 
@@ -146,10 +143,14 @@ public class TanamanController {
         }
         try {
             TanamanDTO dto = buildDTOFromForm(selectedId);
-            tanamanService.ubahTanaman(dto);
+            boolean berubah = tanamanService.ubahTanaman(dto);
+            if (!berubah) {
+                showWarning("Data tidak berubah karena semua data masih sama seperti sebelumnya.");
+                return;
+            }
             loadData();
             clearForm();
-            showInfo("Tanaman berhasil diubah! Status: " + dto.getStatus());
+            showInfo("Tanaman berhasil diubah!");
         } catch (IllegalArgumentException ex) {
             showAlert(ex.getMessage());
         } catch (Exception ex) {
@@ -278,6 +279,13 @@ public class TanamanController {
     }
 
     private void showAlert(String msg) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+        alert.setTitle("Peringatan");
+        alert.setHeaderText(null);
+        alert.showAndWait();
+    }
+
+    private void showWarning(String msg) {
         Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
         alert.setTitle("Peringatan");
         alert.setHeaderText(null);

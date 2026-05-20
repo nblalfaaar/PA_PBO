@@ -74,13 +74,21 @@ public class PenggunaController {
 
     @FXML
     public void handleUbah() {
-        if (selectedId == -1) { showAlert("Pilih pengguna terlebih dahulu!"); return; }
+        if (selectedId == -1) {
+            showAlert("Pilih pengguna terlebih dahulu!");
+            return;
+        }
         try {
             PenggunaDTO dto = new PenggunaDTO();
             dto.setId(selectedId);
             dto.setNama(tfNama.getText().trim());
             dto.setAlamat(tfAlamat.getText().trim());
-            penggunaService.ubahPengguna(dto);
+
+            boolean berubah = penggunaService.ubahPengguna(dto);
+            if (!berubah) {
+                showWarning("Data tidak berubah karena semua data masih sama seperti sebelumnya.");
+                return;
+            }
             loadData();
             clearForm();
             showInfo("Pengguna berhasil diubah!");
@@ -91,7 +99,10 @@ public class PenggunaController {
 
     @FXML
     public void handleHapus() {
-        if (selectedId == -1) { showAlert("Pilih pengguna terlebih dahulu!"); return; }
+        if (selectedId == -1) {
+            showAlert("Pilih pengguna terlebih dahulu!");
+            return;
+        }
         Alert konfirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "Yakin ingin menghapus pengguna ini?\nSemua catatan terkait akan ikut terhapus.",
                 ButtonType.YES, ButtonType.NO);
@@ -104,7 +115,6 @@ public class PenggunaController {
             }
         });
     }
-
 
     private void loadData() {
         data.clear();
@@ -120,10 +130,23 @@ public class PenggunaController {
     }
 
     private void showAlert(String msg) {
-        new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+        alert.setTitle("Peringatan");
+        alert.setHeaderText(null);
+        alert.showAndWait();
+    }
+
+    private void showWarning(String msg) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+        alert.setTitle("Peringatan");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 
     private void showInfo(String msg) {
-        new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+        alert.setTitle("Informasi");
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 }

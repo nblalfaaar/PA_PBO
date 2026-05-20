@@ -21,7 +21,7 @@ public class PenggunaServiceImpl implements PenggunaService {
 
     @Override
     public List<PenggunaDTO> getAllPengguna() {
-        List<Pengguna> list   = penggunaRepository.findAll();
+        List<Pengguna> list = penggunaRepository.findAll();
         List<PenggunaDTO> result = new ArrayList<>();
         for (Pengguna p : list) {
             result.add(new PenggunaDTO(p.getId(), p.getNama(), p.getAlamat()));
@@ -46,7 +46,7 @@ public class PenggunaServiceImpl implements PenggunaService {
     }
 
     @Override
-    public void ubahPengguna(PenggunaDTO dto) {
+    public boolean ubahPengguna(PenggunaDTO dto) {
         validasiDTO(dto);
 
         if (penggunaRepository.isNamaExists(dto.getId(), dto.getNama())) {
@@ -62,10 +62,16 @@ public class PenggunaServiceImpl implements PenggunaService {
             throw new IllegalArgumentException("Pengguna tidak ditemukan!");
         }
 
+        boolean adaPerubahan =
+                !existing.getNama().equals(dto.getNama()) ||
+                        !existing.getAlamat().equals(dto.getAlamat());
+
+        if (!adaPerubahan) return false;
+
         existing.setNama(dto.getNama());
         existing.setAlamat(dto.getAlamat());
-
         penggunaRepository.update(existing);
+        return true;
     }
 
     @Override

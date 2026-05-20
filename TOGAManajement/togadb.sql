@@ -61,3 +61,6 @@ SET status = CASE
     ELSE 'SIAP_PANEN'
 END
 WHERE status != 'SUDAH_DIPANEN';
+
+ALTER TABLE catatan_panen
+MODIFY COLUMN hasil_panen INT NOT NULL;
