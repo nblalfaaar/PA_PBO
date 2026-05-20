@@ -75,6 +75,7 @@ public class PanenController {
         colHasil.setCellValueFactory(new PropertyValueFactory<>("hasilPanenStr"));
         colKeterangan.setCellValueFactory(new PropertyValueFactory<>("keterangan"));
 
+        // Filter input hanya angka untuk hasil panen
         tfHasilPanen.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.isEmpty()) {
                 if (!newVal.matches("\\d*")) {
@@ -112,7 +113,7 @@ public class PanenController {
             return;
         }
 
-        if (namaTanaman.equals("-- Tidak ada tanaman --")) {
+        if (namaTanaman.equals("-- Tidak ada tanaman siap panen --")) {
             showAlert("Tidak ada tanaman yang siap dipanen!");
             return;
         }
@@ -189,7 +190,7 @@ public class PanenController {
         try {
             var tanamanDTOList = tanamanService.getAllTanamanForCombo();
             if (tanamanDTOList.isEmpty()) {
-                tanamanList.add("-- Tidak ada tanaman --");
+                tanamanList.add("-- Tidak ada tanaman siap panen --");
             } else {
                 for (var dto : tanamanDTOList) {
                     tanamanMap.put(dto.getNama(), dto.getId());
@@ -203,9 +204,13 @@ public class PanenController {
 
         try {
             List<PenggunaDTO> listPengguna = penggunaService.getAllPengguna();
-            for (PenggunaDTO p : listPengguna) {
-                penggunaMap.put(p.getNama(), p.getId());
-                penggunaList.add(p.getNama());
+            if (listPengguna.isEmpty()) {
+                penggunaList.add("-- Tidak ada pengguna --");
+            } else {
+                for (PenggunaDTO p : listPengguna) {
+                    penggunaMap.put(p.getNama(), p.getId());
+                    penggunaList.add(p.getNama());
+                }
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Gagal load pengguna combo", e);
@@ -213,12 +218,12 @@ public class PanenController {
         }
 
         cmbTanaman.setItems(tanamanList);
-        if (!tanamanList.isEmpty() && !tanamanList.getFirst().equals("-- Tidak ada tanaman --")) {
+        if (!tanamanList.isEmpty() && !tanamanList.getFirst().equals("-- Tidak ada tanaman siap panen --")) {
             cmbTanaman.setValue(tanamanList.getFirst());
         }
 
         cmbPengguna.setItems(penggunaList);
-        if (!penggunaList.isEmpty()) {
+        if (!penggunaList.isEmpty() && !penggunaList.getFirst().equals("-- Tidak ada pengguna --")) {
             cmbPengguna.setValue(penggunaList.getFirst());
         }
     }

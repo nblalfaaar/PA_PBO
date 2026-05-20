@@ -246,7 +246,7 @@ public class TanamanRepositoryImpl implements TanamanRepository {
     public List<TanamanDTO> findAllForCombo() {
         List<TanamanDTO> list = new ArrayList<>();
         String sql = "SELECT id, nama, nama_latin, manfaat, jenis, properti_tambahan, status, tanggal_tanam, estimasi_hari "
-                + "FROM tanaman WHERE status != 'SUDAH_DIPANEN' ORDER BY nama";
+                + "FROM tanaman WHERE status = 'SIAP_PANEN' ORDER BY nama";
 
         try (Connection conn = DBConnection.getConnection()) {
             if (conn == null) {
