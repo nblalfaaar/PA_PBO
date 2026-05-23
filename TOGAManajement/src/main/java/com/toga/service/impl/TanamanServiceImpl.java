@@ -143,16 +143,12 @@ public class TanamanServiceImpl implements TanamanService {
         int updated = 0;
 
         for (TanamanDTO dto : semua) {
-            // Skip yang sudah dipanen
             if ("SUDAH_DIPANEN".equals(dto.getStatus())) continue;
-
-            // Hitung status berdasarkan tanggal tanam dan estimasi hari
             StatusTanaman statusBaru = Tanaman.hitungStatus(
                     dto.getTanggalTanam(),
                     dto.getEstimasiHari()
             );
 
-            // Jika berbeda, update di database
             if (!dto.getStatus().equals(statusBaru.name())) {
                 tanamanRepository.updateStatus(dto.getId(), statusBaru.name());
                 updated++;

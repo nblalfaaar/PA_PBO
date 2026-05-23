@@ -31,11 +31,11 @@ public class DashboardController {
     @FXML private TableColumn<DashboardDTO.MendekatiPanenRow, String> colSisa;
 
     private final DashboardService dashboardService;
-    private final TanamanService tanamanService;  // ✅ TAMBAHKAN
+    private final TanamanService tanamanService;
 
     public DashboardController() {
         this.dashboardService = new DashboardServiceImpl(new DashboardRepositoryImpl());
-        this.tanamanService = new TanamanServiceImpl(new TanamanRepositoryImpl());  // ✅ TAMBAHKAN
+        this.tanamanService = new TanamanServiceImpl(new TanamanRepositoryImpl());
     }
 
     @FXML
@@ -47,7 +47,6 @@ public class DashboardController {
 
     private void loadDashboard() {
         try {
-            // ✅ UPDATE STATUS SEMUA TANAMAN DULU sebelum ambil data dashboard
             tanamanService.updateAllStatusOtomatis();
 
             DashboardDTO data = dashboardService.getDashboardData();
